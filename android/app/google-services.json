@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "938618444145",
+    "project_id": "groupchat-436c7",
+    "storage_bucket": "groupchat-436c7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:938618444145:android:33877adb990c03719afed0",
+        "android_client_info": {
+          "package_name": "com.etechviral.self_host_group_chat_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDs0tzBg1kvn7mKpCf6csIc8bihLk8BDO4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:938618444145:android:6882d537d8894e4c9afed0",
+        "android_client_info": {
+          "package_name": "com.example.groupchat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDs0tzBg1kvn7mKpCf6csIc8bihLk8BDO4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
