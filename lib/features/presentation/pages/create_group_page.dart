@@ -1,15 +1,18 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:self_host_group_chat_app/features/data/remote/data_sources/storage_provider.dart';
-import 'package:self_host_group_chat_app/features/domain/entities/group_entity.dart';
+import 'package:self_host_group_chat_app/features/data/api/storage_provider.dart';
+import 'package:self_host_group_chat_app/features/data/models/group_entity.dart';
 import 'package:self_host_group_chat_app/features/presentation/cubit/group/group_cubit.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/common.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/profile_widget.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/textfield_container.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/theme/style.dart';
+
+import '../cubit/user/user_cubit.dart';
 
 class CreateGroupPage extends StatefulWidget {
   final String uid;
@@ -22,57 +25,31 @@ class CreateGroupPage extends StatefulWidget {
 class _CreateGroupPageState extends State<CreateGroupPage> {
   TextEditingController _groupNameController = TextEditingController();
   TextEditingController _numberUsersJoinController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
-  TextEditingController _dobController = TextEditingController();
-  TextEditingController _genderController = TextEditingController();
-  TextEditingController _examTypeController = TextEditingController();
-  TextEditingController _passwordAgainController = TextEditingController();
-  TextEditingController _numberController = TextEditingController();
 
   GlobalKey<ScaffoldState> _scaffoldState = GlobalKey<ScaffoldState>();
 
-  int _selectGender = -1;
-  int _selectExamType = -1;
-  bool _isShowPassword = true;
-
   File? _image;
   String? _profileUrl;
+  List<String> _selectedUserIds = []; // Store selected user IDs
 
   Future getImage() async {
     try {
       final pickedFile =
           await ImagePicker.platform.getImage(source: ImageSource.gallery);
-
       setState(() {
         if (pickedFile != null) {
           _image = File(pickedFile.path);
-
           StorageProviderRemoteDataSource.uploadFile(file: _image!)
               .then((value) {
-            print("profileUrl");
             setState(() {
               _profileUrl = value;
             });
           });
-        } else {
-          print('No image selected.');
         }
       });
     } catch (e) {
-      toast("error $e");
+      toast("Error: $e");
     }
-  }
-
-  void dispose() {
-    _examTypeController.dispose();
-    _dobController.dispose();
-    _genderController.dispose();
-    _passwordController.dispose();
-    _numberUsersJoinController.dispose();
-    _numberController.dispose();
-    _passwordAgainController.dispose();
-    _groupNameController.dispose();
-    super.dispose();
   }
 
   @override
@@ -80,7 +57,9 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
     return Scaffold(
       key: _scaffoldState,
       appBar: AppBar(
-        title: Text("Create group"),
+        foregroundColor: Colors.white,
+        backgroundColor: primaryColor,
+        title: Text("Create Group", style: TextStyle(color: Colors.white)),
       ),
       body: _bodyWidget(),
     );
@@ -95,7 +74,6 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
             GestureDetector(
               onTap: () async {
                 getImage();
-                //FIXME:
               },
               child: Column(
                 children: [
@@ -110,48 +88,27 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                         borderRadius: BorderRadius.all(Radius.circular(50)),
                         child: profileWidget(image: _image)),
                   ),
-                  SizedBox(
-                    height: 12,
-                  ),
-                  Text(
-                    'Add Group Image',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: greenColor),
-                  ),
+                  SizedBox(height: 12),
+                  Text('Add Group Image',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: primaryColor)),
                 ],
               ),
             ),
-            SizedBox(
-              height: 17,
-            ),
+            SizedBox(height: 17),
             TextFieldContainer(
               controller: _groupNameController,
               keyboardType: TextInputType.text,
-              hintText: 'group name',
+              hintText: 'Group name',
               prefixIcon: Icons.edit,
             ),
-            SizedBox(
-              height: 10,
-            ),
-            TextFieldContainer(
-              controller: _numberUsersJoinController,
-              keyboardType: TextInputType.emailAddress,
-              hintText: 'number of users join group',
-              prefixIcon: Icons.format_list_numbered,
-            ),
-            SizedBox(
-              height: 17,
-            ),
-            Divider(
-              thickness: 2,
-              indent: 120,
-              endIndent: 120,
-            ),
-            SizedBox(
-              height: 17,
-            ),
+            SizedBox(height: 10),
+            _buildUserSelection(), // User selection widget
+            SizedBox(height: 17),
+            Divider(thickness: 2, indent: 120, endIndent: 120),
+            SizedBox(height: 17),
             InkWell(
               onTap: () {
                 _submit();
@@ -162,102 +119,91 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                 width: MediaQuery.of(context).size.width,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
-                  color: greenColor,
+                  color: primaryColor,
                 ),
-                child: Text(
-                  'Create New Group',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700),
-                ),
+                child: Text('Create New Group',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700)),
               ),
             ),
-            SizedBox(
-              height: 12,
-            ),
-            SizedBox(
-              height: 12,
-            ),
-            Container(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'By clicking Create New Group, you agree to the ',
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: colorC1C1C1),
-                  ),
-                  Text(
-                    'Privacy Policy',
-                    style: TextStyle(
-                        color: greenColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'and ',
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: colorC1C1C1),
-                  ),
-                  Text(
-                    'terms ',
-                    style: TextStyle(
-                        color: greenColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700),
-                  ),
-                  Text(
-                    'of use',
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: colorC1C1C1),
-                  ),
-                ],
-              ),
-            )
+            SizedBox(height: 12),
           ],
         ),
       ),
     );
   }
 
-  _submit() async {
+  Widget _buildUserSelection() {
+    return BlocBuilder<UserCubit, UserState>(
+      builder: (context, userState) {
+        if (userState is UserLoaded) {
+          final users =
+              userState.users.where((user) => user.uid != widget.uid).toList();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Select Users",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              SizedBox(height: 10),
+              users.isEmpty
+                  ? Center(child: Text("No Users Found"))
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: users.length,
+                      itemBuilder: (_, index) {
+                        final user = users[index];
+                        return CheckboxListTile(
+                          title: Text(user.name),
+                          value: _selectedUserIds.contains(user.uid),
+                          onChanged: (bool? selected) {
+                            setState(() {
+                              if (selected == true) {
+                                _selectedUserIds.add(user.uid);
+                              } else {
+                                _selectedUserIds.remove(user.uid);
+                              }
+                            });
+                          },
+                        );
+                      },
+                    ),
+            ],
+          );
+        }
+        return Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+
+  _submit() {
     if (_image == null) {
       toast('Add profile photo');
       return;
     }
     if (_groupNameController.text.isEmpty) {
-      toast('enter your surname');
+      toast('Enter group name');
       return;
     }
-    if (_numberUsersJoinController.text.isEmpty) {
-      toast('enter your email');
+    if (_selectedUserIds.isEmpty) {
+      toast('Select at least one user');
       return;
     }
-
+_selectedUserIds.add(widget.uid);
     BlocProvider.of<GroupCubit>(context).getCreateGroup(
-        groupEntity: GroupEntity(
-      lastMessage: "",
-      uid: widget.uid,
-      groupName: _groupNameController.text,
-      creationTime: Timestamp.now(),
-      groupProfileImage: _profileUrl ?? '',
-      joinUsers: "0",
-      limitUsers: _numberUsersJoinController.text,
-    ));
+      groupEntity: GroupEntity(
+        lastMessage: "",
+        uid: widget.uid,
+        groupName: _groupNameController.text,
+        creationTime: Timestamp.now(),
+        groupProfileImage: _profileUrl ?? '',
+        joinUsers:
+            _selectedUserIds.join(','), // Storing UIDs as comma-separated
+        limitUsers: _selectedUserIds,
+      ),
+    );
     toast("${_groupNameController.text} created successfully");
     _clear();
   }
@@ -265,9 +211,9 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
   void _clear() {
     setState(() {
       _groupNameController.clear();
-      _numberUsersJoinController.clear();
       _profileUrl = "";
       _image = null;
+      _selectedUserIds.clear();
     });
   }
 }

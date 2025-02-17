@@ -1,16 +1,10 @@
 import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:self_host_group_chat_app/features/data/remote/data_sources/storage_provider.dart';
-import 'package:self_host_group_chat_app/features/data/remote/models/user_model.dart';
-import 'package:self_host_group_chat_app/features/domain/entities/user_entity.dart';
+import 'package:self_host_group_chat_app/features/data/api/storage_provider.dart';
+import 'package:self_host_group_chat_app/features/data/models/user_model.dart';
+import 'package:self_host_group_chat_app/features/data/models/user_entity.dart';
 import 'package:self_host_group_chat_app/features/presentation/cubit/user/user_cubit.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/common.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/profile_widget.dart';
@@ -26,19 +20,16 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-
   TextEditingController? _nameController;
   TextEditingController? _statusController;
   TextEditingController? _emailController;
   TextEditingController? _numController;
-
 
   File? _image;
   String? _profileUrl;
   String? _username;
   String? _phoneNumber;
   final picker = ImagePicker();
-
 
   void dispose() {
     _nameController!.dispose();
@@ -47,7 +38,6 @@ class _ProfilePageState extends State<ProfilePage> {
     _numController!.dispose();
     super.dispose();
   }
-
 
   @override
   void initState() {
@@ -58,7 +48,6 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
   }
 
-
   Future getImage() async {
     try {
       final pickedFile = await picker.getImage(source: ImageSource.gallery);
@@ -66,10 +55,11 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         if (pickedFile != null) {
           _image = File(pickedFile.path);
-          StorageProviderRemoteDataSource.uploadFile(file: _image!).then((value) {
+          StorageProviderRemoteDataSource.uploadFile(file: _image!)
+              .then((value) {
             print("profileUrl");
             setState(() {
-              _profileUrl=value;
+              _profileUrl = value;
             });
           });
         } else {
@@ -85,33 +75,29 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return BlocBuilder<UserCubit, UserState>(
       builder: (context, userState) {
-
-        if (userState is UserLoaded){
+        if (userState is UserLoaded) {
           return _profileWidget(userState.users);
         }
-
 
         return Center(child: CircularProgressIndicator());
       },
     );
   }
 
-
   Widget _profileWidget(List<UserEntity> users) {
-
-    final user= users.firstWhere((user) =>user.uid==widget.uid,orElse: ()  => UserModel());
+    final user = users.firstWhere((user) => user.uid == widget.uid,
+        orElse: () => UserModel());
     _nameController!.value = TextEditingValue(text: "${user.name}");
     _emailController!.value = TextEditingValue(text: "${user.email}");
     _statusController!.value = TextEditingValue(text: "${user.status}");
-
-
-
 
     return SingleChildScrollView(
       child: Container(
         child: Column(
           children: <Widget>[
-            SizedBox(height: 10,),
+            SizedBox(
+              height: 10,
+            ),
             GestureDetector(
               onTap: () {
                 getImage();
@@ -124,8 +110,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   borderRadius: BorderRadius.all(Radius.circular(50)),
                 ),
                 child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(50)),
-                    child: profileWidget(imageUrl: user.profileUrl, image: _image),
+                  borderRadius: BorderRadius.all(Radius.circular(50)),
+                  child:
+                      profileWidget(imageUrl: user.profileUrl, image: _image),
                 ),
               ),
             ),
@@ -135,9 +122,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Text(
               'Remove profile photo',
               style: TextStyle(
-                  color: greenColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400),
+                  color: greenColor, fontSize: 16, fontWeight: FontWeight.w400),
             ),
             SizedBox(
               height: 28,
@@ -145,10 +130,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Container(
               margin: EdgeInsets.only(left: 22, right: 22),
               height: 47,
-              width: MediaQuery
-                  .of(context)
-                  .size
-                  .width,
+              width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(
                 color: color747480.withOpacity(.2),
                 borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -166,7 +148,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   hintText: 'username',
                   hintStyle:
-                  TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
+                      TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
                 ),
               ),
             ),
@@ -176,10 +158,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Container(
               margin: EdgeInsets.only(left: 22, right: 22),
               height: 47,
-              width: MediaQuery
-                  .of(context)
-                  .size
-                  .width,
+              width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(
                 color: color747480.withOpacity(.2),
                 borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -195,7 +174,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     hintText: 'email',
                     hintStyle:
-                    TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
+                        TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
                   ),
                 ),
               ),
@@ -203,14 +182,10 @@ class _ProfilePageState extends State<ProfilePage> {
             SizedBox(
               height: 10,
             ),
-
             Container(
               margin: EdgeInsets.only(left: 22, right: 22),
               height: 47,
-              width: MediaQuery
-                  .of(context)
-                  .size
-                  .width,
+              width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(
                 color: color747480.withOpacity(.2),
                 borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -225,7 +200,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   hintText: 'status',
                   hintStyle:
-                  TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
+                      TextStyle(fontSize: 17, fontWeight: FontWeight.w400),
                 ),
               ),
             ),
@@ -237,7 +212,6 @@ class _ProfilePageState extends State<ProfilePage> {
               endIndent: 15,
               indent: 15,
             ),
-
             SizedBox(
               height: 10,
             ),
@@ -252,10 +226,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   margin: EdgeInsets.only(left: 22, right: 22),
                   alignment: Alignment.center,
                   height: 44,
-                  width: MediaQuery
-                      .of(context)
-                      .size
-                      .width,
+                  width: MediaQuery.of(context).size.width,
                   decoration: BoxDecoration(
                     color: greenColor,
                     borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -274,7 +245,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-
   void _updateProfile() {
     BlocProvider.of<UserCubit>(context).getUpdateUser(
       user: UserEntity(
@@ -286,6 +256,4 @@ class _ProfilePageState extends State<ProfilePage> {
     );
     toast("Profile Updated");
   }
-
-
 }

@@ -5,9 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:self_host_group_chat_app/features/domain/entities/group_entity.dart';
-import 'package:self_host_group_chat_app/features/domain/entities/single_chat_entity.dart';
-import 'package:self_host_group_chat_app/features/domain/entities/text_messsage_entity.dart';
+import 'package:self_host_group_chat_app/features/data/models/group_entity.dart';
+import 'package:self_host_group_chat_app/features/data/models/single_chat_entity.dart';
+import 'package:self_host_group_chat_app/features/data/models/text_messsage_entity.dart';
 import 'package:self_host_group_chat_app/features/presentation/cubit/chat/chat_cubit.dart';
 import 'package:self_host_group_chat_app/features/presentation/cubit/group/group_cubit.dart';
 
@@ -36,7 +36,6 @@ class _SingleChatPageState extends State<SingleChatPage> {
     });
     BlocProvider.of<ChatCubit>(context)
         .getMessages(channelId: widget.singleChatEntity.groupId);
-    //FIXME: call get all messages
     super.initState();
   }
 
@@ -69,6 +68,8 @@ class _SingleChatPageState extends State<SingleChatPage> {
                 _sendMessageTextField(),
               ],
             );
+          } else if (chatState is ChatFailure) {
+            return Center(child: Text('FALIED'));
           }
 
           return Center(child: CircularProgressIndicator());
@@ -158,6 +159,10 @@ class _SingleChatPageState extends State<SingleChatPage> {
                 print(_messageController.text);
                 BlocProvider.of<ChatCubit>(context).sendTextMessage(
                     textMessageEntity: TextMessageEntity(
+                        expiredAt: Timestamp.fromMillisecondsSinceEpoch(
+                          Timestamp.now().millisecondsSinceEpoch +
+                              Duration(minutes: 2).inMilliseconds,
+                        ),
                         time: Timestamp.now(),
                         senderId: widget.singleChatEntity.uid,
                         content: _messageController.text,

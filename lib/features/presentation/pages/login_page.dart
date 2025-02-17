@@ -3,7 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:self_host_group_chat_app/features/presentation/cubit/auth/auth_cubit.dart';
 import 'package:self_host_group_chat_app/features/presentation/cubit/credential/credential_cubit.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/common.dart';
-import '../../../page_const.dart';
+import 'package:self_host_group_chat_app/features/presentation/widgets/theme/style.dart';
+import '../../../core/routes/page_const.dart';
 import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -72,7 +73,7 @@ class _LoginPageState extends State<LoginPage> {
               style: TextStyle(
                 fontSize: 35,
                 fontWeight: FontWeight.w700,
-                color: colorScheme.primary,
+                color: primaryColor,
               ),
             ),
           ),
@@ -90,7 +91,7 @@ class _LoginPageState extends State<LoginPage> {
               height: 44,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: colorScheme.primary,
+                color: primaryColor,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -98,7 +99,7 @@ class _LoginPageState extends State<LoginPage> {
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: colorScheme.onPrimary,
+                  color: textIconColor,
                 ),
               ),
             ),
@@ -111,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                   style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: colorScheme.onBackground)),
+                      color: colorScheme.onSurface)),
               SizedBox(width: 5),
               InkWell(
                 onTap: () {
@@ -122,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: colorScheme.primary,
+                    color: primaryColor,
                   ),
                 ),
               ),
@@ -146,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
       child: TextField(
         controller: controller,
         obscureText: isPassword ? _isShowPassword : false,
-        style: TextStyle(color: colorScheme.onBackground),
+        style: TextStyle(color: colorScheme.onSurface),
         decoration: InputDecoration(
           contentPadding: EdgeInsets.only(top: 13),
           prefixIcon: Icon(icon, color: colorScheme.onSurface),

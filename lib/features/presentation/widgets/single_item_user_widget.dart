@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:self_host_group_chat_app/features/domain/entities/user_entity.dart';
+import 'package:self_host_group_chat_app/features/data/models/user_entity.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/profile_widget.dart';
 
 class SingleItemStoriesStatusWidget extends StatelessWidget {
   final UserEntity user;
 
-  const SingleItemStoriesStatusWidget({Key? key, required this.user}) : super(key: key);
+  const SingleItemStoriesStatusWidget({Key? key, required this.user})
+      : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(top: 10,right: 10,left: 10),
+      padding: EdgeInsets.only(top: 10, right: 10, left: 10),
       child: Column(
         children: [
           Row(
@@ -37,12 +38,16 @@ class SingleItemStoriesStatusWidget extends StatelessWidget {
                       children: [
                         Text(
                           "${user.name}",
-                          style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.w500),
                         ),
-                        SizedBox(height: 5,),
+                        SizedBox(
+                          height: 5,
+                        ),
                         Text(
-                          user.status==null|| user.status==""?"Hi! I'm using this app":"${user.status}",
+                          user.status == ""
+                              ? "Hi! I'm using this app"
+                              : "${user.status}",
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -53,10 +58,13 @@ class SingleItemStoriesStatusWidget extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 60,right: 10),
-            child: Divider(thickness: 1.50,),
+            padding: const EdgeInsets.only(left: 60, right: 10),
+            child: Divider(
+              thickness: 1.50,
+            ),
           ),
         ],
       ),
     );
-  }}
+  }
+}

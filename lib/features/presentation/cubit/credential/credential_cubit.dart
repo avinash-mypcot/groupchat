@@ -1,13 +1,14 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:self_host_group_chat_app/features/domain/entities/user_entity.dart';
-import 'package:self_host_group_chat_app/features/domain/use_cases/forgot_password_usecase.dart';
-import 'package:self_host_group_chat_app/features/domain/use_cases/get_create_current_user_usecase.dart';
-import 'package:self_host_group_chat_app/features/domain/use_cases/google_sign_in_usecase.dart';
-import 'package:self_host_group_chat_app/features/domain/use_cases/sign_in_usecase.dart';
-import 'package:self_host_group_chat_app/features/domain/use_cases/sign_up_usecase.dart';
+import 'package:self_host_group_chat_app/features/data/models/user_entity.dart';
+import 'package:self_host_group_chat_app/features/data/repositories/forgot_password_repository.dart';
+import 'package:self_host_group_chat_app/features/data/repositories/get_create_current_user_repository.dart';
+import 'package:self_host_group_chat_app/features/data/repositories/google_sign_in_repository.dart';
+import 'package:self_host_group_chat_app/features/data/repositories/sign_in_repository.dart';
+import 'package:self_host_group_chat_app/features/data/repositories/sign_up_repository.dart';
 
 part 'credential_state.dart';
 
@@ -76,5 +77,4 @@ class CredentialCubit extends Cubit<CredentialState> {
       emit(CredentialFailure());
     }
   }
-
 }

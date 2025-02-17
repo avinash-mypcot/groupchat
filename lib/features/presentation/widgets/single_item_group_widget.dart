@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:self_host_group_chat_app/features/domain/entities/group_entity.dart';
+import 'package:self_host_group_chat_app/features/data/models/group_entity.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/profile_widget.dart';
 
 class SingleItemGroupWidget extends StatelessWidget {

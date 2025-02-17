@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:self_host_group_chat_app/features/domain/entities/onBoarding_entity.dart';
+import 'package:self_host_group_chat_app/features/data/models/onBoarding_entity.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/theme/style.dart';
-
-
-import '../../../page_const.dart';
-import 'login_page.dart';
+import '../../../core/routes/page_const.dart';
 
 class OnBoardingPage extends StatefulWidget {
   @override
@@ -52,7 +49,10 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                     SizedBox(
                       width: 8,
                     ),
-                    Text("Geri",style: TextStyle(color: Colors.white),)
+                    Text(
+                      "Geri",
+                      style: TextStyle(color: Colors.white),
+                    )
                   ],
                 )
               : Row(
@@ -155,9 +155,9 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
             height: 10,
           ),
           InkWell(
-            onTap: (){
-              if (_pageIndex==2){
-                Navigator.pushNamed(context,PageConst.loginPage);
+            onTap: () {
+              if (_pageIndex == 2) {
+                Navigator.pushNamed(context, PageConst.loginPage);
               }
             },
             child: Row(

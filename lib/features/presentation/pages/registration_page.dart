@@ -2,16 +2,14 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:self_host_group_chat_app/features/data/remote/data_sources/storage_provider.dart';
-import 'package:self_host_group_chat_app/features/domain/entities/user_entity.dart';
+import 'package:self_host_group_chat_app/features/data/models/user_entity.dart';
 import 'package:self_host_group_chat_app/features/presentation/cubit/auth/auth_cubit.dart';
 import 'package:self_host_group_chat_app/features/presentation/cubit/credential/credential_cubit.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/common.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/textfield_container.dart';
-
-import '../../../page_const.dart';
+import '../../../core/routes/page_const.dart';
+import '../widgets/theme/style.dart';
 import 'home_page.dart';
 
 class RegistrationPage extends StatefulWidget {
@@ -48,7 +46,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final Color darkDivider = Colors.grey; // Divider color
   final Color selectionColor =
       Colors.deepOrange; // Color for selection indicators
-
 
   @override
   void dispose() {
@@ -122,7 +119,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 style: TextStyle(
                     fontSize: 35,
                     fontWeight: FontWeight.w700,
-                    color: darkGreen),
+                    color: primaryColor),
               ),
             ),
             SizedBox(height: 10),
@@ -263,7 +260,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 width: MediaQuery.of(context).size.width,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(10)),
-                  color: darkGreen,
+                  color: primaryColor,
                 ),
                 child: Text(
                   'Register',
@@ -297,7 +294,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: darkGreen),
+                          color: primaryColor),
                     ),
                   ),
                 ],
@@ -313,7 +310,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   void _genderModalBottomSheetMenu() {
     showModalBottomSheet(
         context: context,
-        backgroundColor: darkGrey,
+        backgroundColor: textIconColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
         ),
@@ -321,13 +318,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
           return StatefulBuilder(
             builder: (context, setState) {
               return Container(
-                height: 300.0,
                 decoration: BoxDecoration(
-                    color: darkGrey,
+                    color: textIconColor,
                     borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(10),
                         topRight: Radius.circular(10))),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       padding: EdgeInsets.only(top: 20, left: 10, right: 10),
@@ -360,6 +357,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           _genderController.value =
                               TextEditingValue(text: "Woman");
                         });
+                        Navigator.pop(context);
                       },
                       child: Container(
                         padding:
@@ -397,6 +395,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           _genderController.value =
                               TextEditingValue(text: "Man");
                         });
+                        Navigator.pop(context);
                       },
                       child: Container(
                         padding:
@@ -434,6 +433,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           _genderController.value =
                               TextEditingValue(text: "I don't want to specify");
                         });
+                        Navigator.pop(context);
                       },
                       child: Container(
                         padding:
@@ -476,7 +476,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   void _modalBottomSheetDate() {
     showModalBottomSheet(
         context: context,
-        backgroundColor: darkGrey,
+        backgroundColor: textIconColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
         ),
@@ -484,7 +484,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           return Container(
               height: 300.0,
               decoration: BoxDecoration(
-                  color: darkGrey,
+                  color: textIconColor,
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(10),
                       topRight: Radius.circular(10))),

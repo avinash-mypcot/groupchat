@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:self_host_group_chat_app/features/presentation/cubit/auth/auth_cubit.dart';
@@ -5,11 +6,11 @@ import 'package:self_host_group_chat_app/features/presentation/cubit/group/group
 import 'package:self_host_group_chat_app/features/presentation/cubit/user/user_cubit.dart';
 import 'package:self_host_group_chat_app/features/presentation/pages/all_users_page.dart';
 import 'package:self_host_group_chat_app/features/presentation/pages/groups_page.dart';
-import 'package:self_host_group_chat_app/features/presentation/pages/profile_page.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/customTabBar.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/theme/style.dart';
-import '../../../app_const.dart';
+import '../../../core/constants/app_const.dart';
 
+@RoutePage()
 class HomePage extends StatefulWidget {
   final String uid;
 
@@ -52,7 +53,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     BlocProvider.of<UserCubit>(context).getUsers();
-    BlocProvider.of<GroupCubit>(context).getGroups();
+    BlocProvider.of<GroupCubit>(context).getGroups(widget.uid);
     _searchTextController.addListener(() {
       setState(() {});
     });

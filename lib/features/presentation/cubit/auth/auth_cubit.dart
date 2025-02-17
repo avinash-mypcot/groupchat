@@ -1,9 +1,9 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:self_host_group_chat_app/features/domain/use_cases/get_current_uid_usecase.dart';
-import 'package:self_host_group_chat_app/features/domain/use_cases/get_current_uid_usecase.dart';
-import 'package:self_host_group_chat_app/features/domain/use_cases/is_sign_in_usecase.dart';
-import 'package:self_host_group_chat_app/features/domain/use_cases/sign_out_usecase.dart';
+import 'package:self_host_group_chat_app/features/data/repositories/get_current_uid_repository.dart';
+import 'package:self_host_group_chat_app/features/data/repositories/get_current_uid_repository.dart';
+import 'package:self_host_group_chat_app/features/data/repositories/is_sign_in_repository.dart';
+import 'package:self_host_group_chat_app/features/data/repositories/sign_out_repository.dart';
 part 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {

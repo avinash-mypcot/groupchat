@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/common.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/textfield_container.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/theme/style.dart';
-import '../../../app_const.dart';
-import '../../../page_const.dart';
+import '../../../core/constants/app_const.dart';
+import '../../../core/routes/page_const.dart';
 
 class ForgetPassPage extends StatefulWidget {
   @override
@@ -27,7 +27,9 @@ class _ForgetPassPageState extends State<ForgetPassPage> {
           padding: EdgeInsets.symmetric(horizontal: 22, vertical: 32),
           child: Column(
             children: <Widget>[
-              SizedBox(height: 20,),
+              SizedBox(
+                height: 20,
+              ),
               Container(
                   alignment: Alignment.topLeft,
                   child: Text(
@@ -46,8 +48,13 @@ class _ForgetPassPageState extends State<ForgetPassPage> {
               SizedBox(
                 height: 30,
               ),
-
-              Text("Don't worry! Just fill in your email and ${AppConst.appName} will send you a link to rest your password.",style: TextStyle(fontSize: 14,color: Colors.black.withOpacity(.6),fontStyle: FontStyle.italic),),
+              Text(
+                "Don't worry! Just fill in your email and ${AppConst.appName} will send you a link to rest your password.",
+                style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black.withOpacity(.6),
+                    fontStyle: FontStyle.italic),
+              ),
               SizedBox(
                 height: 30,
               ),
@@ -91,11 +98,12 @@ class _ForgetPassPageState extends State<ForgetPassPage> {
                     Text(
                       'Remember the account information? ',
                       style:
-                      TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                     ),
                     InkWell(
-                      onTap: (){
-                        Navigator.pushNamedAndRemoveUntil(context, PageConst.loginPage, (route) => false);
+                      onTap: () {
+                        Navigator.pushNamedAndRemoveUntil(
+                            context, PageConst.loginPage, (route) => false);
                       },
                       child: Text(
                         'Login',
@@ -121,5 +129,4 @@ class _ForgetPassPageState extends State<ForgetPassPage> {
       return;
     }
   }
-
 }
