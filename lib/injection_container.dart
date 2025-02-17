@@ -31,65 +31,65 @@ final sl = GetIt.instance;
 Future<void> init() async {
   //Future bloc
   sl.registerFactory<AuthCubit>(() => AuthCubit(
-        isSignInUseCase: sl.call(),
-        signOutUseCase: sl.call(),
-        getCurrentUIDUseCase: sl.call(),
+        isSignInRepository: sl.call(),
+        signOutRepository: sl.call(),
+        getCurrentUIDRepository: sl.call(),
       ));
   sl.registerFactory<CredentialCubit>(() => CredentialCubit(
-      forgotPasswordUseCase: sl.call(),
-      getCreateCurrentUserUseCase: sl.call(),
-      signInUseCase: sl.call(),
-      signUpUseCase: sl.call(),
-      googleSignInUseCase: sl.call()));
+      forgotPasswordRepository: sl.call(),
+      getCreateCurrentUserRepository: sl.call(),
+      signInRepository: sl.call(),
+      signUpRepository: sl.call(),
+      googleSignInRepository: sl.call()));
   sl.registerFactory<UserCubit>(() => UserCubit(
-        getAllUsersUseCase: sl.call(),
-        getUpdateUserUseCase: sl.call(),
+        getAllUsersRepository: sl.call(),
+        getUpdateUserRepository: sl.call(),
       ));
 
   sl.registerFactory<GroupCubit>(() => GroupCubit(
-        getAllGroupsUseCase: sl.call(),
-        getCreateGroupUseCase: sl.call(),
-        joinGroupUseCase: sl.call(),
-        groupUseCase: sl.call(),
+        getAllGroupsRepository: sl.call(),
+        getCreateGroupRepository: sl.call(),
+        joinGroupRepository: sl.call(),
+        groupRepository: sl.call(),
       ));
   sl.registerFactory<ChatCubit>(() => ChatCubit(
-        getMessageUseCase: sl.call(),
-        sendTextMessageUseCase: sl.call(),
+        getMessageRepository: sl.call(),
+        sendTextMessageRepository: sl.call(),
       ));
 
-  //UseCases
-  sl.registerLazySingleton<GoogleSignInUseCase>(
-      () => GoogleSignInUseCase(repository: sl.call()));
-  sl.registerLazySingleton<ForgotPasswordUseCase>(
-      () => ForgotPasswordUseCase(repository: sl.call()));
-  sl.registerLazySingleton<GetCreateCurrentUserUseCase>(
-      () => GetCreateCurrentUserUseCase(repository: sl.call()));
-  sl.registerLazySingleton<GetCurrentUIDUseCase>(
-      () => GetCurrentUIDUseCase(repository: sl.call()));
-  sl.registerLazySingleton<IsSignInUseCase>(
-      () => IsSignInUseCase(repository: sl.call()));
-  sl.registerLazySingleton<SignInUseCase>(
-      () => SignInUseCase(repository: sl.call()));
-  sl.registerLazySingleton<SignUpUseCase>(
-      () => SignUpUseCase(repository: sl.call()));
-  sl.registerLazySingleton<SignOutUseCase>(
-      () => SignOutUseCase(repository: sl.call()));
-  sl.registerLazySingleton<GetAllUsersUseCase>(
-      () => GetAllUsersUseCase(repository: sl.call()));
-  sl.registerLazySingleton<GetUpdateUserUseCase>(
-      () => GetUpdateUserUseCase(repository: sl.call()));
-  sl.registerLazySingleton<GetCreateGroupUseCase>(
-      () => GetCreateGroupUseCase(repository: sl.call()));
-  sl.registerLazySingleton<GetAllGroupsUseCase>(
-      () => GetAllGroupsUseCase(repository: sl.call()));
-  sl.registerLazySingleton<JoinGroupUseCase>(
-      () => JoinGroupUseCase(repository: sl.call()));
-  sl.registerLazySingleton<UpdateGroupUseCase>(
-      () => UpdateGroupUseCase(repository: sl.call()));
-  sl.registerLazySingleton<GetMessageUseCase>(
-      () => GetMessageUseCase(repository: sl.call()));
-  sl.registerLazySingleton<SendTextMessageUseCase>(
-      () => SendTextMessageUseCase(repository: sl.call()));
+  //Repositorys
+  sl.registerLazySingleton<GoogleSignInRepository>(
+      () => GoogleSignInRepository(repository: sl.call()));
+  sl.registerLazySingleton<ForgotPasswordRepository>(
+      () => ForgotPasswordRepository(repository: sl.call()));
+  sl.registerLazySingleton<GetCreateCurrentUserRepository>(
+      () => GetCreateCurrentUserRepository(repository: sl.call()));
+  sl.registerLazySingleton<GetCurrentUIDRepository>(
+      () => GetCurrentUIDRepository(repository: sl.call()));
+  sl.registerLazySingleton<IsSignInRepository>(
+      () => IsSignInRepository(repository: sl.call()));
+  sl.registerLazySingleton<SignInRepository>(
+      () => SignInRepository(repository: sl.call()));
+  sl.registerLazySingleton<SignUpRepository>(
+      () => SignUpRepository(repository: sl.call()));
+  sl.registerLazySingleton<SignOutRepository>(
+      () => SignOutRepository(repository: sl.call()));
+  sl.registerLazySingleton<GetAllUsersRepository>(
+      () => GetAllUsersRepository(repository: sl.call()));
+  sl.registerLazySingleton<GetUpdateUserRepository>(
+      () => GetUpdateUserRepository(repository: sl.call()));
+  sl.registerLazySingleton<GetCreateGroupRepository>(
+      () => GetCreateGroupRepository(repository: sl.call()));
+  sl.registerLazySingleton<GetAllGroupsRepository>(
+      () => GetAllGroupsRepository(repository: sl.call()));
+  sl.registerLazySingleton<JoinGroupRepository>(
+      () => JoinGroupRepository(repository: sl.call()));
+  sl.registerLazySingleton<UpdateGroupRepository>(
+      () => UpdateGroupRepository(repository: sl.call()));
+  sl.registerLazySingleton<GetMessageRepository>(
+      () => GetMessageRepository(repository: sl.call()));
+  sl.registerLazySingleton<SendTextMessageRepository>(
+      () => SendTextMessageRepository(repository: sl.call()));
 
   //Repository
   sl.registerLazySingleton<FirebaseServices>(

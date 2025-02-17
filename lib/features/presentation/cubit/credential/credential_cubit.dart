@@ -1,6 +1,4 @@
-import 'dart:developer';
 import 'dart:io';
-
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:self_host_group_chat_app/features/data/models/user_entity.dart';
@@ -9,27 +7,26 @@ import 'package:self_host_group_chat_app/features/data/repositories/get_create_c
 import 'package:self_host_group_chat_app/features/data/repositories/google_sign_in_repository.dart';
 import 'package:self_host_group_chat_app/features/data/repositories/sign_in_repository.dart';
 import 'package:self_host_group_chat_app/features/data/repositories/sign_up_repository.dart';
-
 part 'credential_state.dart';
 
 class CredentialCubit extends Cubit<CredentialState> {
-  final SignUpUseCase signUpUseCase;
-  final SignInUseCase signInUseCase;
-  final ForgotPasswordUseCase forgotPasswordUseCase;
-  final GetCreateCurrentUserUseCase getCreateCurrentUserUseCase;
-  final GoogleSignInUseCase googleSignInUseCase;
+  final SignUpRepository signUpRepository;
+  final SignInRepository signInRepository;
+  final ForgotPasswordRepository forgotPasswordRepository;
+  final GetCreateCurrentUserRepository getCreateCurrentUserRepository;
+  final GoogleSignInRepository googleSignInRepository;
 
   CredentialCubit(
-      {required this.googleSignInUseCase,
-      required this.signUpUseCase,
-      required this.signInUseCase,
-      required this.forgotPasswordUseCase,
-      required this.getCreateCurrentUserUseCase})
+      {required this.googleSignInRepository,
+      required this.signUpRepository,
+      required this.signInRepository,
+      required this.forgotPasswordRepository,
+      required this.getCreateCurrentUserRepository})
       : super(CredentialInitial());
 
   Future<void> forgotPassword({required String email}) async {
     try {
-      await forgotPasswordUseCase.call(email);
+      await forgotPasswordRepository.call(email);
     } on SocketException catch (_) {
       emit(CredentialFailure());
     } catch (_) {
@@ -43,7 +40,7 @@ class CredentialCubit extends Cubit<CredentialState> {
   }) async {
     emit(CredentialLoading());
     try {
-      await signInUseCase.call(UserEntity(email: email, password: password));
+      await signInRepository.call(UserEntity(email: email, password: password));
       emit(CredentialSuccess());
     } on SocketException catch (_) {
       emit(CredentialFailure());
@@ -55,7 +52,7 @@ class CredentialCubit extends Cubit<CredentialState> {
   Future<void> googleAuthSubmit() async {
     emit(CredentialLoading());
     try {
-      await googleSignInUseCase.call();
+      await googleSignInRepository.call();
       emit(CredentialSuccess());
     } on SocketException catch (_) {
       emit(CredentialFailure());
@@ -67,9 +64,9 @@ class CredentialCubit extends Cubit<CredentialState> {
   Future<void> signUpSubmit({required UserEntity user}) async {
     emit(CredentialLoading());
     try {
-      await signUpUseCase
+      await signUpRepository
           .call(UserEntity(email: user.email, password: user.password));
-      await getCreateCurrentUserUseCase.call(user);
+      await getCreateCurrentUserRepository.call(user);
       emit(CredentialSuccess());
     } on SocketException catch (_) {
       emit(CredentialFailure());

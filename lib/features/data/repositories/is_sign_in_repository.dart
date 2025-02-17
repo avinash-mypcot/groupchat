@@ -1,9 +1,9 @@
 import 'package:self_host_group_chat_app/features/data/services/firebase_services.dart';
 
-class IsSignInUseCase {
+class IsSignInRepository {
   final FirebaseServices repository;
 
-  IsSignInUseCase({required this.repository});
+  IsSignInRepository({required this.repository});
 
   Future<bool> call() async {
     return repository.isSignIn();

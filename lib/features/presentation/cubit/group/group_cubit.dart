@@ -10,21 +10,21 @@ import 'package:self_host_group_chat_app/features/data/repositories/update_group
 part 'group_state.dart';
 
 class GroupCubit extends Cubit<GroupState> {
-  final GetCreateGroupUseCase getCreateGroupUseCase;
-  final GetAllGroupsUseCase getAllGroupsUseCase;
-  final JoinGroupUseCase joinGroupUseCase;
-  final UpdateGroupUseCase groupUseCase;
+  final GetCreateGroupRepository getCreateGroupRepository;
+  final GetAllGroupsRepository getAllGroupsRepository;
+  final JoinGroupRepository joinGroupRepository;
+  final UpdateGroupRepository groupRepository;
   GroupCubit(
-      {required this.groupUseCase,
-      required this.joinGroupUseCase,
-      required this.getCreateGroupUseCase,
-      required this.getAllGroupsUseCase})
+      {required this.groupRepository,
+      required this.joinGroupRepository,
+      required this.getCreateGroupRepository,
+      required this.getAllGroupsRepository})
       : super(GroupInitial());
 
   Future<void> getGroups(String uId) async {
     emit(GroupLoading());
 
-    final streamResponse = getAllGroupsUseCase.call();
+    final streamResponse = getAllGroupsRepository.call();
     streamResponse.listen((groups) {
       // Filter groups where limitUsers contains the provided uId
       final filteredGroups = groups.where((group) {
@@ -38,7 +38,7 @@ class GroupCubit extends Cubit<GroupState> {
   Future<void> getCreateGroup({required GroupEntity groupEntity}) async {
     log("IN GETCREATE GROUPE : ${groupEntity.limitUsers!.length}");
     try {
-      await getCreateGroupUseCase.call(groupEntity);
+      await getCreateGroupRepository.call(groupEntity);
     } on SocketException catch (_) {
       emit(GroupFailure());
     } catch (_) {
@@ -48,7 +48,7 @@ class GroupCubit extends Cubit<GroupState> {
 
   Future<void> joinGroup({required GroupEntity groupEntity}) async {
     try {
-      await joinGroupUseCase.call(groupEntity);
+      await joinGroupRepository.call(groupEntity);
     } on SocketException catch (_) {
       emit(GroupFailure());
     } catch (_) {
@@ -58,7 +58,7 @@ class GroupCubit extends Cubit<GroupState> {
 
   Future<void> updateGroup({required GroupEntity groupEntity}) async {
     try {
-      await groupUseCase.call(groupEntity);
+      await groupRepository.call(groupEntity);
     } on SocketException catch (_) {
       emit(GroupFailure());
     } catch (_) {

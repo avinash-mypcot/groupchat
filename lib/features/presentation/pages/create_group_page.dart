@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +10,6 @@ import 'package:self_host_group_chat_app/features/presentation/widgets/common.da
 import 'package:self_host_group_chat_app/features/presentation/widgets/profile_widget.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/textfield_container.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/theme/style.dart';
-
 import '../cubit/user/user_cubit.dart';
 
 class CreateGroupPage extends StatefulWidget {

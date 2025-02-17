@@ -9,27 +9,28 @@ import 'package:self_host_group_chat_app/features/data/repositories/get_update_u
 part 'user_state.dart';
 
 class UserCubit extends Cubit<UserState> {
-  final GetAllUsersUseCase getAllUsersUseCase;
-  final GetUpdateUserUseCase getUpdateUserUseCase;
-  UserCubit({required this.getAllUsersUseCase,required this.getUpdateUserUseCase}) : super(UserInitial());
+  final GetAllUsersRepository getAllUsersRepository;
+  final GetUpdateUserRepository getUpdateUserRepository;
+  UserCubit(
+      {required this.getAllUsersRepository,
+      required this.getUpdateUserRepository})
+      : super(UserInitial());
 
-
-  Future<void> getUsers()async{
-     emit(UserLoading());
-    final streamResponse= getAllUsersUseCase.call();
+  Future<void> getUsers() async {
+    emit(UserLoading());
+    final streamResponse = getAllUsersRepository.call();
     streamResponse.listen((users) {
       emit(UserLoaded(users: users));
     });
   }
 
-  Future<void> getUpdateUser({required UserEntity user})async{
-    try{
-      await getUpdateUserUseCase.call(user);
-    }on SocketException catch(_){
+  Future<void> getUpdateUser({required UserEntity user}) async {
+    try {
+      await getUpdateUserRepository.call(user);
+    } on SocketException catch (_) {
       emit(UserFailure());
-    }catch(_){
+    } catch (_) {
       emit(UserFailure());
     }
   }
-
 }

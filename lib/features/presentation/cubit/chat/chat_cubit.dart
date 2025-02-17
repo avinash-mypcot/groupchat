@@ -10,16 +10,17 @@ import 'package:self_host_group_chat_app/features/data/repositories/send_text_me
 part 'chat_state.dart';
 
 class ChatCubit extends Cubit<ChatState> {
-  final SendTextMessageUseCase sendTextMessageUseCase;
-  final GetMessageUseCase getMessageUseCase;
+  final SendTextMessageRepository sendTextMessageRepository;
+  final GetMessageRepository getMessageRepository;
   ChatCubit(
-      {required this.getMessageUseCase, required this.sendTextMessageUseCase})
+      {required this.getMessageRepository,
+      required this.sendTextMessageRepository})
       : super(ChatInitial());
 
   Future<void> getMessages({required String channelId}) async {
     log("LOADING MSG MSG MSG");
     emit(ChatLoading());
-    final streamResponse = getMessageUseCase.call(channelId);
+    final streamResponse = getMessageRepository.call(channelId);
     streamResponse.listen((messages) {
       emit(ChatLoaded(messages: messages));
     });
@@ -29,7 +30,7 @@ class ChatCubit extends Cubit<ChatState> {
       {required TextMessageEntity textMessageEntity,
       required String channelId}) async {
     try {
-      await sendTextMessageUseCase.call(textMessageEntity, channelId);
+      await sendTextMessageRepository.call(textMessageEntity, channelId);
     } on SocketException catch (_) {
       emit(ChatFailure());
     } catch (_) {
