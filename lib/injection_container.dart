@@ -14,6 +14,7 @@ import 'package:self_host_group_chat_app/features/data/repositories/send_text_me
 import 'package:self_host_group_chat_app/features/data/repositories/update_group_repository.dart';
 import 'package:self_host_group_chat_app/features/presentation/cubit/group/group_cubit.dart';
 import 'package:self_host_group_chat_app/features/presentation/cubit/user/user_cubit.dart';
+import 'core/services/notification/notification_service.dart';
 import 'features/data/api/firebase_remote_data_source.dart';
 import 'features/data/services/firebase_services.dart';
 import 'features/data/repositories/forgot_password_repository.dart';
@@ -26,85 +27,88 @@ import 'features/presentation/cubit/auth/auth_cubit.dart';
 import 'features/presentation/cubit/chat/chat_cubit.dart';
 import 'features/presentation/cubit/credential/credential_cubit.dart';
 
-final sl = GetIt.instance;
+final serviceLocator = GetIt.instance;
 
 Future<void> init() async {
+  serviceLocator
+      .registerFactory<FirebaseCloudMessaging>(() => FirebaseCloudMessaging());
   //Future bloc
-  sl.registerFactory<AuthCubit>(() => AuthCubit(
-        isSignInRepository: sl.call(),
-        signOutRepository: sl.call(),
-        getCurrentUIDRepository: sl.call(),
+  serviceLocator.registerFactory<AuthCubit>(() => AuthCubit(
+        isSignInRepository: serviceLocator.call(),
+        signOutRepository: serviceLocator.call(),
+        getCurrentUIDRepository: serviceLocator.call(),
       ));
-  sl.registerFactory<CredentialCubit>(() => CredentialCubit(
-      forgotPasswordRepository: sl.call(),
-      getCreateCurrentUserRepository: sl.call(),
-      signInRepository: sl.call(),
-      signUpRepository: sl.call(),
-      googleSignInRepository: sl.call()));
-  sl.registerFactory<UserCubit>(() => UserCubit(
-        getAllUsersRepository: sl.call(),
-        getUpdateUserRepository: sl.call(),
+  serviceLocator.registerFactory<CredentialCubit>(() => CredentialCubit(
+      forgotPasswordRepository: serviceLocator.call(),
+      getCreateCurrentUserRepository: serviceLocator.call(),
+      signInRepository: serviceLocator.call(),
+      signUpRepository: serviceLocator.call(),
+      googleSignInRepository: serviceLocator.call()));
+  serviceLocator.registerFactory<UserCubit>(() => UserCubit(
+        getAllUsersRepository: serviceLocator.call(),
+        getUpdateUserRepository: serviceLocator.call(),
       ));
 
-  sl.registerFactory<GroupCubit>(() => GroupCubit(
-        getAllGroupsRepository: sl.call(),
-        getCreateGroupRepository: sl.call(),
-        joinGroupRepository: sl.call(),
-        groupRepository: sl.call(),
+  serviceLocator.registerFactory<GroupCubit>(() => GroupCubit(
+        getAllGroupsRepository: serviceLocator.call(),
+        getCreateGroupRepository: serviceLocator.call(),
+        joinGroupRepository: serviceLocator.call(),
+        groupRepository: serviceLocator.call(),
       ));
-  sl.registerFactory<ChatCubit>(() => ChatCubit(
-        getMessageRepository: sl.call(),
-        sendTextMessageRepository: sl.call(),
+  serviceLocator.registerFactory<ChatCubit>(() => ChatCubit(
+        getMessageRepository: serviceLocator.call(),
+        sendTextMessageRepository: serviceLocator.call(),
       ));
 
   //Repositorys
-  sl.registerLazySingleton<GoogleSignInRepository>(
-      () => GoogleSignInRepository(repository: sl.call()));
-  sl.registerLazySingleton<ForgotPasswordRepository>(
-      () => ForgotPasswordRepository(repository: sl.call()));
-  sl.registerLazySingleton<GetCreateCurrentUserRepository>(
-      () => GetCreateCurrentUserRepository(repository: sl.call()));
-  sl.registerLazySingleton<GetCurrentUIDRepository>(
-      () => GetCurrentUIDRepository(repository: sl.call()));
-  sl.registerLazySingleton<IsSignInRepository>(
-      () => IsSignInRepository(repository: sl.call()));
-  sl.registerLazySingleton<SignInRepository>(
-      () => SignInRepository(repository: sl.call()));
-  sl.registerLazySingleton<SignUpRepository>(
-      () => SignUpRepository(repository: sl.call()));
-  sl.registerLazySingleton<SignOutRepository>(
-      () => SignOutRepository(repository: sl.call()));
-  sl.registerLazySingleton<GetAllUsersRepository>(
-      () => GetAllUsersRepository(repository: sl.call()));
-  sl.registerLazySingleton<GetUpdateUserRepository>(
-      () => GetUpdateUserRepository(repository: sl.call()));
-  sl.registerLazySingleton<GetCreateGroupRepository>(
-      () => GetCreateGroupRepository(repository: sl.call()));
-  sl.registerLazySingleton<GetAllGroupsRepository>(
-      () => GetAllGroupsRepository(repository: sl.call()));
-  sl.registerLazySingleton<JoinGroupRepository>(
-      () => JoinGroupRepository(repository: sl.call()));
-  sl.registerLazySingleton<UpdateGroupRepository>(
-      () => UpdateGroupRepository(repository: sl.call()));
-  sl.registerLazySingleton<GetMessageRepository>(
-      () => GetMessageRepository(repository: sl.call()));
-  sl.registerLazySingleton<SendTextMessageRepository>(
-      () => SendTextMessageRepository(repository: sl.call()));
+  serviceLocator.registerLazySingleton<GoogleSignInRepository>(
+      () => GoogleSignInRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<ForgotPasswordRepository>(
+      () => ForgotPasswordRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<GetCreateCurrentUserRepository>(
+      () => GetCreateCurrentUserRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<GetCurrentUIDRepository>(
+      () => GetCurrentUIDRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<IsSignInRepository>(
+      () => IsSignInRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<SignInRepository>(
+      () => SignInRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<SignUpRepository>(
+      () => SignUpRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<SignOutRepository>(
+      () => SignOutRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<GetAllUsersRepository>(
+      () => GetAllUsersRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<GetUpdateUserRepository>(
+      () => GetUpdateUserRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<GetCreateGroupRepository>(
+      () => GetCreateGroupRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<GetAllGroupsRepository>(
+      () => GetAllGroupsRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<JoinGroupRepository>(
+      () => JoinGroupRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<UpdateGroupRepository>(
+      () => UpdateGroupRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<GetMessageRepository>(
+      () => GetMessageRepository(repository: serviceLocator.call()));
+  serviceLocator.registerLazySingleton<SendTextMessageRepository>(
+      () => SendTextMessageRepository(repository: serviceLocator.call()));
 
   //Repository
-  sl.registerLazySingleton<FirebaseServices>(
-      () => FirebaseServices(remoteDataSource: sl.call()));
+  serviceLocator.registerLazySingleton<FirebaseServices>(
+      () => FirebaseServices(remoteDataSource: serviceLocator.call()));
 
   //Remote DataSource
-  sl.registerLazySingleton<FirebaseRemoteDataSource>(
-      () => FirebaseRemoteDataSource(sl.call(), sl.call(), sl.call()));
+  serviceLocator.registerLazySingleton<FirebaseRemoteDataSource>(() =>
+      FirebaseRemoteDataSource(
+          serviceLocator.call(), serviceLocator.call(), serviceLocator.call()));
 
   //External
   final auth = FirebaseAuth.instance;
   final fireStore = FirebaseFirestore.instance;
   final GoogleSignIn googleSignIn = GoogleSignIn();
 
-  sl.registerLazySingleton(() => auth);
-  sl.registerLazySingleton(() => fireStore);
-  sl.registerLazySingleton(() => googleSignIn);
+  serviceLocator.registerLazySingleton(() => auth);
+  serviceLocator.registerLazySingleton(() => fireStore);
+  serviceLocator.registerLazySingleton(() => googleSignIn);
 }

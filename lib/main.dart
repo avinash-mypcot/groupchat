@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:self_host_group_chat_app/core/constants/app_const.dart';
@@ -6,6 +7,7 @@ import 'package:self_host_group_chat_app/features/presentation/cubit/user/user_c
 import 'package:self_host_group_chat_app/features/presentation/pages/login_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'core/services/notification/notification_service.dart';
 import 'features/presentation/cubit/auth/auth_cubit.dart';
 import 'features/presentation/cubit/credential/credential_cubit.dart';
 import 'features/presentation/cubit/group/group_cubit.dart';
@@ -13,14 +15,41 @@ import 'features/presentation/pages/home_page.dart';
 import 'firebase_options.dart';
 import 'core/routes/on_generate_route.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'injection_container.dart' as di;
+import 'injection_container.dart';
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // serviceLocator<FirebaseCloudMessaging>().showFlutterNotification(message);
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await di.init();
+  await init();
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  await messaging.requestPermission(
+    alert: true,
+    announcement: true,
+    badge: true, //count of notification
+    carPlay: true,
+    criticalAlert: true,
+    sound: true,
+    provisional: false,
+  );
+  // await FirebaseMessaging.instance.requestPermission();
+
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  await serviceLocator<FirebaseCloudMessaging>().getFirebaseNotification();
+  await serviceLocator<FirebaseCloudMessaging>().setupFlutterNotifications();
   runApp(MyApp());
 }
 
@@ -30,19 +59,19 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
         providers: [
           BlocProvider<AuthCubit>(
-            create: (_) => di.sl<AuthCubit>()..appStarted(),
+            create: (_) => serviceLocator<AuthCubit>()..appStarted(),
           ),
           BlocProvider<CredentialCubit>(
-            create: (_) => di.sl<CredentialCubit>(),
+            create: (_) => serviceLocator<CredentialCubit>(),
           ),
           BlocProvider<UserCubit>(
-            create: (_) => di.sl<UserCubit>()..getUsers(),
+            create: (_) => serviceLocator<UserCubit>()..getUsers(),
           ),
           BlocProvider<GroupCubit>(
-            create: (_) => di.sl<GroupCubit>()..getGroups(''),
+            create: (_) => serviceLocator<GroupCubit>()..getGroups(''),
           ),
           BlocProvider<ChatCubit>(
-            create: (_) => di.sl<ChatCubit>(),
+            create: (_) => serviceLocator<ChatCubit>(),
           ),
         ],
         child: ScreenUtilInit(

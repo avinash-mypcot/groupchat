@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:bubble/bubble.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,11 +24,13 @@ class SingleChatPage extends StatefulWidget {
 }
 
 class _SingleChatPageState extends State<SingleChatPage> {
+  OverlayEntry? _popupEntry;
+  bool _isDisappearingEnabled = false; // Store the disappearing message state
+  int _disappearTime = 2; // Default disappearing time in minutes
+  String _timeUnit = 'Minutes';
   String messageContent = "";
   TextEditingController _messageController = TextEditingController();
   ScrollController _scrollController = ScrollController();
-  // bool _changeKeyboardType = false;
-  // int _menuIndex = 0;
 
   @override
   void initState() {
@@ -46,11 +49,189 @@ class _SingleChatPageState extends State<SingleChatPage> {
     super.dispose();
   }
 
+  Timestamp setExpirationTime(int duration, String timeUnit) {
+    int milliseconds = 0;
+
+    if (timeUnit == "Minutes") {
+      milliseconds = Duration(minutes: duration).inMilliseconds;
+    } else if (timeUnit == "Hours") {
+      milliseconds = Duration(hours: duration).inMilliseconds;
+    } else if (timeUnit == "Days") {
+      milliseconds = Duration(days: duration).inMilliseconds;
+    } else if (timeUnit == "Weeks") {
+      milliseconds =
+          Duration(days: duration * 7).inMilliseconds; // 1 week = 7 days
+    } else {
+      throw ArgumentError(
+          "Invalid time unit. Use 'minutes', 'hours', 'days', or 'weeks'.");
+    }
+
+    // Calculate the expiration time by adding the specified time duration to the current time
+    return Timestamp.fromMillisecondsSinceEpoch(
+      Timestamp.now().millisecondsSinceEpoch + milliseconds,
+    );
+  }
+
+  void _showPopup(BuildContext context, Offset position) {
+    _popupEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          // Tap detector to dismiss the popup
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                _removePopup();
+              },
+              behavior: HitTestBehavior.opaque,
+              child: Container(),
+            ),
+          ),
+
+          // The popup menu
+          Positioned(
+            top: position.dy,
+            right: 10,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: 200,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 8,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _popupItem("Enable Disappearing Messages", Icons.timer, () {
+                      _showDisappearingDialog(context);
+                      _removePopup();
+                    }),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    Overlay.of(context).insert(_popupEntry!);
+  }
+
+  // Helper to display a dialog for selecting disappearing time
+  void _showDisappearingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          // Use StatefulBuilder to manage state within the dialog
+          builder: (context, setState) {
+            // Debugging print statements to check values
+            print('Time: $_disappearTime $_timeUnit');
+
+            return AlertDialog(
+              title: Text('Set Disappearing Message Time'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Dropdown for time unit selection
+                  DropdownButton<String>(
+                    value: _timeUnit,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _timeUnit = newValue!;
+                        _disappearTime =
+                            1; // Reset time to 1 when changing the unit
+                        print('Selected unit: $_timeUnit');
+                      });
+                    },
+                    items: <String>['Minutes', 'Hours', 'Days', 'Weeks']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                  // Slider to select the duration value
+                  Slider(
+                    value: _disappearTime.toDouble(),
+                    min: 1,
+                    max: (_timeUnit == 'Weeks')
+                        ? 4
+                        : 24, // Weeks can have up to 4
+                    divisions: (_timeUnit == 'Weeks') ? 4 : 24,
+                    label: '$_disappearTime $_timeUnit',
+                    onChanged: (value) {
+                      setState(() {
+                        _disappearTime = value.toInt();
+                        log('Slider value changed: $_disappearTime');
+                      });
+                    },
+                  ),
+                  // Display the selected duration
+                  Text('$_disappearTime $_timeUnit'),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _isDisappearingEnabled =
+                          true; // Enable disappearing messages
+                    });
+                    Navigator.pop(context);
+                    print(
+                        "Disappearing messages enabled for $_disappearTime $_timeUnit");
+                  },
+                  child: Text('Enable'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('Cancel'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _popupItem(String text, IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.black54),
+            SizedBox(width: 10),
+            Expanded(child: Text(text, style: TextStyle(fontSize: 16))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _removePopup() {
+    _popupEntry?.remove();
+    _popupEntry = null;
+  }
+
   check() {}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: appBarMain(context),
       appBar: AppBar(
         foregroundColor: textIconColor,
         title: Text(
@@ -58,6 +239,17 @@ class _SingleChatPageState extends State<SingleChatPage> {
           style: TextStyle(color: textIconColor),
         ),
         backgroundColor: primaryColor,
+        actions: [
+          GestureDetector(
+            onTapDown: (details) {
+              _showPopup(context, details.globalPosition);
+            },
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              child: Icon(Icons.settings),
+            ),
+          ),
+        ],
       ),
       body: BlocBuilder<ChatCubit, ChatState>(
         builder: (index, chatState) {
@@ -159,10 +351,11 @@ class _SingleChatPageState extends State<SingleChatPage> {
                 print(_messageController.text);
                 BlocProvider.of<ChatCubit>(context).sendTextMessage(
                     textMessageEntity: TextMessageEntity(
-                        expiredAt: Timestamp.fromMillisecondsSinceEpoch(
-                          Timestamp.now().millisecondsSinceEpoch +
-                              Duration(minutes: 2).inMilliseconds,
-                        ),
+                        expiredAt: setExpirationTime(_disappearTime, _timeUnit),
+                        //  Timestamp.fromMillisecondsSinceEpoch(
+                        //   Timestamp.now().millisecondsSinceEpoch +
+                        //       Duration(minutes: 2).inMilliseconds,
+                        // ),
                         time: Timestamp.now(),
                         senderId: widget.singleChatEntity.uid,
                         content: _messageController.text,
