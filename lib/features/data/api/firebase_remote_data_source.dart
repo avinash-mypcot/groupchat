@@ -2,11 +2,14 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:self_host_group_chat_app/features/data/models/engage_user_entity.dart';
 import 'package:self_host_group_chat_app/features/data/models/group_entity.dart';
 import 'package:self_host_group_chat_app/features/data/models/my_chat_entity.dart';
 import 'package:self_host_group_chat_app/features/data/models/text_messsage_entity.dart';
 import 'package:self_host_group_chat_app/features/data/models/user_entity.dart';
+import 'package:self_host_group_chat_app/injection_container.dart';
+import '../../../core/services/network/bloc/network_bloc.dart';
 import '../models/group_model.dart';
 import '../models/my_chat_model.dart';
 import '../models/text_message_model.dart';
@@ -168,7 +171,6 @@ class FirebaseRemoteDataSource {
         .doc(channelId)
         .collection("messages");
 
-    //MessageId
     final messageId = messagesRef.doc().id;
 
     final newMessage = TextMessageModel(
@@ -181,26 +183,100 @@ class FirebaseRemoteDataSource {
       senderName: textMessageEntity.senderName,
       time: textMessageEntity.time,
       type: textMessageEntity.type,
-    ).toDocument();
+    );
+    final currentState = serviceLocator<NetworkBloc>().state;
+    // Save to Firebase if connected
+    if (await currentState is NetworkSuccess) {
+      await messagesRef.doc(messageId).set(newMessage.toDocument());
+    }
 
-    messagesRef.doc(messageId).set(newMessage);
+    // Save to Hive for offline storage
+    var box = await Hive.box<TextMessageModel>('messages');
+    box.put(messageId, newMessage);
   }
 
-  Stream<List<TextMessageEntity>> getMessages(String channelId) {
+  Stream<List<TextMessageEntity>> getMessages(String channelId) async* {
     final oneToOneChatChannelRef = fireStore.collection("groupChatChannel");
     final messagesRef =
         oneToOneChatChannelRef.doc(channelId).collection("messages");
-
-    return messagesRef
-        .orderBy('time') // Ensure ordering by time
-        .snapshots()
-        .map((querySnap) => querySnap.docs
+    final currentState = serviceLocator<NetworkBloc>().state;
+    // Save to Firebase if connected
+    log('GET MESSAGE1212$currentState');
+    if (await currentState is NetworkSuccess) {
+      log('GET MESSAGE ');
+      yield* messagesRef.orderBy('time').snapshots().map((querySnap) {
+        final messages = querySnap.docs
             .map((queryDoc) => TextMessageModel.fromSnapshot(queryDoc))
-            .where((message) => message.expiredAt!
-                .toDate()
-                .isAfter(DateTime.now())) // Filter expired messages
-            .toList());
+            .where((message) =>
+                message.expiredAt!.toDate().isAfter(DateTime.now()))
+            .toList();
+
+        // Save to Hive
+        _saveMessagesToHive(channelId, messages);
+
+        return messages;
+      });
+    } else {
+      // If offline, get messages from Hive
+      var box = await Hive.box<TextMessageModel>('messages');
+      yield box.values.toList();
+    }
   }
+
+  Future<void> _saveMessagesToHive(
+      String channelId, List<TextMessageModel> messages) async {
+    try {
+      var box = Hive.box<TextMessageModel>('messages');
+      for (var message in messages) {
+        await Future.delayed(Duration(
+            milliseconds: 10)); // Small delay to prevent race condition
+        await box.put(message.messageId, message);
+      }
+    } catch (e) {
+      log("E$e");
+    }
+  }
+
+  // Future<void> sendTextMessage(
+  //     TextMessageEntity textMessageEntity, String channelId) async {
+  //   final messagesRef = fireStore
+  //       .collection("groupChatChannel")
+  //       .doc(channelId)
+  //       .collection("messages");
+
+  //   //MessageId
+  //   final messageId = messagesRef.doc().id;
+
+  //   final newMessage = TextMessageModel(
+  //     expiredAt: textMessageEntity.expiredAt,
+  //     content: textMessageEntity.content,
+  //     messageId: messageId,
+  //     receiverName: textMessageEntity.receiverName,
+  //     recipientId: textMessageEntity.recipientId,
+  //     senderId: textMessageEntity.senderId,
+  //     senderName: textMessageEntity.senderName,
+  //     time: textMessageEntity.time,
+  //     type: textMessageEntity.type,
+  //   ).toDocument();
+
+  //   messagesRef.doc(messageId).set(newMessage);
+  // }
+
+  // Stream<List<TextMessageEntity>> getMessages(String channelId) {
+  //   final oneToOneChatChannelRef = fireStore.collection("groupChatChannel");
+  //   final messagesRef =
+  //       oneToOneChatChannelRef.doc(channelId).collection("messages");
+
+  //   return messagesRef
+  //       .orderBy('time') // Ensure ordering by time
+  //       .snapshots()
+  //       .map((querySnap) => querySnap.docs
+  //           .map((queryDoc) => TextMessageModel.fromSnapshot(queryDoc))
+  //           .where((message) => message.expiredAt!
+  //               .toDate()
+  //               .isAfter(DateTime.now())) // Filter expired messages
+  //           .toList());
+  // }
 
   Future<void> addToMyChat(MyChatEntity myChatEntity) async {
     final myChatRef = fireStore

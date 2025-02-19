@@ -9,6 +9,8 @@ import 'package:self_host_group_chat_app/features/presentation/widgets/single_it
 import 'package:self_host_group_chat_app/core/routes/page_const.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/theme/style.dart';
 
+import '../../../core/services/network/bloc/network_bloc.dart';
+
 class GroupsPage extends StatelessWidget {
   final String uid;
   final String? query;
@@ -30,89 +32,118 @@ class GroupsPage extends StatelessWidget {
           color: primaryColor,
         ),
       ),
-      body: BlocBuilder<UserCubit, UserState>(
-        builder: (context, userState) {
-          if (userState is UserLoaded) {
-            final user = userState.users.firstWhere(
-                (element) => element.uid == uid,
-                orElse: () => UserModel());
+      body: Stack(
+        children: [
+          BlocBuilder<UserCubit, UserState>(
+            builder: (context, userState) {
+              if (userState is UserLoaded) {
+                final user = userState.users.firstWhere(
+                    (element) => element.uid == uid,
+                    orElse: () => UserModel());
 
-            return BlocBuilder<GroupCubit, GroupState>(
-              builder: (context, groupState) {
-                if (groupState is GroupLoaded) {
-                  final filteredGroups = groupState.groups
-                      .where((group) =>
-                          group.groupName.startsWith(query!) ||
-                          group.groupName.startsWith(query!.toLowerCase()))
-                      .toList();
+                return BlocBuilder<GroupCubit, GroupState>(
+                  builder: (context, groupState) {
+                    if (groupState is GroupLoaded) {
+                      final filteredGroups = groupState.groups
+                          .where((group) =>
+                              group.groupName.startsWith(query!) ||
+                              group.groupName.startsWith(query!.toLowerCase()))
+                          .toList();
 
-                  return Column(
-                    children: [
-                      Expanded(
-                          child: filteredGroups.isEmpty
-                              ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.group,
-                                        size: 40,
-                                        color: Colors.black.withOpacity(.4),
+                      return Column(
+                        children: [
+                          Expanded(
+                              child: filteredGroups.isEmpty
+                                  ? Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.group,
+                                            size: 40,
+                                            color: Colors.black.withOpacity(.4),
+                                          ),
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          Text(
+                                            "No Group Created yet",
+                                            style: TextStyle(
+                                                color: Colors.black
+                                                    .withOpacity(.2)),
+                                          )
+                                        ],
                                       ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      Text(
-                                        "No Group Created yet",
-                                        style: TextStyle(
-                                            color:
-                                                Colors.black.withOpacity(.2)),
-                                      )
-                                    ],
-                                  ),
-                                )
-                              : ListView.builder(
-                                  itemCount: filteredGroups.length,
-                                  itemBuilder: (_, index) {
-                                    return SingleItemGroupWidget(
-                                      group: filteredGroups[index],
-                                      onTap: () {
-                                        BlocProvider.of<GroupCubit>(context)
-                                            .joinGroup(
-                                                groupEntity: GroupEntity(
+                                    )
+                                  : ListView.builder(
+                                      itemCount: filteredGroups.length,
+                                      itemBuilder: (_, index) {
+                                        return SingleItemGroupWidget(
+                                          group: filteredGroups[index],
+                                          onTap: () {
+                                            BlocProvider.of<GroupCubit>(context)
+                                                .joinGroup(
+                                                    groupEntity: GroupEntity(
+                                                        groupId: filteredGroups[
+                                                                index]
+                                                            .groupId))
+                                                .then((value) {
+                                              BlocProvider.of<GroupCubit>(
+                                                      context)
+                                                  .getGroups(uid);
+                                            });
+                                            Navigator.pushNamed(context,
+                                                PageConst.singleChatPage,
+                                                arguments: SingleChatEntity(
+                                                    username: user.name,
                                                     groupId:
                                                         filteredGroups[index]
-                                                            .groupId))
-                                            .then((value) {
-                                          BlocProvider.of<GroupCubit>(context)
-                                              .getGroups(uid);
-                                        });
-                                        Navigator.pushNamed(
-                                            context, PageConst.singleChatPage,
-                                            arguments: SingleChatEntity(
-                                                username: user.name,
-                                                groupId: filteredGroups[index]
-                                                    .groupId,
-                                                groupName: filteredGroups[index]
-                                                    .groupName,
-                                                uid: uid));
+                                                            .groupId,
+                                                    groupName:
+                                                        filteredGroups[index]
+                                                            .groupName,
+                                                    uid: uid));
+                                          },
+                                        );
                                       },
-                                    );
-                                  },
-                                ))
-                    ],
-                  );
-                }
+                                    ))
+                        ],
+                      );
+                    }
 
-                return Center(child: CircularProgressIndicator());
-              },
-            );
-          }
+                    return Center(child: CircularProgressIndicator());
+                  },
+                );
+              }
 
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        },
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            },
+          ),
+          // BlocListener<NetworkBloc, NetworkState>(
+          //   listener: (context, state) {
+          //     if (state is NetworkFailure) {
+          //       // Close any open bottom sheet
+          //       if (Navigator.of(context).canPop()) {
+          //         Navigator.of(context).pop();
+          //       }
+          //     }
+          //   },
+          //   child: BlocBuilder<NetworkBloc, NetworkState>(
+          //     builder: (context, state) {
+          //       if (state is NetworkFailure) {
+          //         return Container(
+          //           child: Text("NO INTERNATE"),
+          //         );
+          //       }
+
+          //       return const SizedBox();
+          //     },
+          //   ),
+          // ),
+        ],
       ),
     );
   }

@@ -22,6 +22,7 @@ class ChatCubit extends Cubit<ChatState> {
     emit(ChatLoading());
     final streamResponse = getMessageRepository.call(channelId);
     streamResponse.listen((messages) {
+      log("LOADING MSG MSG MSG ${messages.length}");
       emit(ChatLoaded(messages: messages));
     });
   }

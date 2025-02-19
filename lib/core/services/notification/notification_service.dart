@@ -30,7 +30,7 @@ class FirebaseCloudMessaging {
   void _handleMessage(RemoteMessage message) {
     showFlutterNotification(message);
     print(message.data);
-    handleRouteFromMessage(message.data);
+    // handleRouteFromMessage(message.data);
   }
 
   void handleRouteFromMessage(Map<String, dynamic> message) {
@@ -79,10 +79,11 @@ class FirebaseCloudMessaging {
 
   //Display Notifications
   void showFlutterNotification(RemoteMessage message) async {
+    if (flutterLocalNotificationsPlugin == null) {
+      await setupFlutterNotifications();
+    }
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
-
-    log('${message.data}');
 
     if (notification != null && android != null) {
       // Download the image
@@ -90,7 +91,7 @@ class FirebaseCloudMessaging {
       final String bigPicturePath = imageUrl != null
           ? await downloadAndSaveFile(imageUrl, 'big_picture')
           : '';
-
+      log(' INTILIZATION :::${flutterLocalNotificationsPlugin == null}');
       flutterLocalNotificationsPlugin?.show(
         // 1,
         DateTime.now().millisecondsSinceEpoch ~/ 1000,
@@ -134,6 +135,7 @@ class FirebaseCloudMessaging {
           provisional: false);
     }
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    log('flutterLocalNotificationsPlugin initialized: ${flutterLocalNotificationsPlugin == null}');
     AndroidInitializationSettings initializationSettingsAndroid =
         const AndroidInitializationSettings('@mipmap/ic_launcher');
     // const AndroidInitializationSettings('ic_notification');
@@ -177,8 +179,8 @@ class FirebaseCloudMessaging {
       playSound: true,
       importance: Importance.max,
     );
-    await flutterLocalNotificationsPlugin!
-        .resolvePlatformSpecificImplementation<
+    await flutterLocalNotificationsPlugin
+        ?.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
   }

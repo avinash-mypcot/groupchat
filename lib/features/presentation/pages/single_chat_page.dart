@@ -352,10 +352,6 @@ class _SingleChatPageState extends State<SingleChatPage> {
                 BlocProvider.of<ChatCubit>(context).sendTextMessage(
                     textMessageEntity: TextMessageEntity(
                         expiredAt: setExpirationTime(_disappearTime, _timeUnit),
-                        //  Timestamp.fromMillisecondsSinceEpoch(
-                        //   Timestamp.now().millisecondsSinceEpoch +
-                        //       Duration(minutes: 2).inMilliseconds,
-                        // ),
                         time: Timestamp.now(),
                         senderId: widget.singleChatEntity.uid,
                         content: _messageController.text,

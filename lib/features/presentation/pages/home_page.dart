@@ -9,6 +9,7 @@ import 'package:self_host_group_chat_app/features/presentation/pages/groups_page
 import 'package:self_host_group_chat_app/features/presentation/widgets/customTabBar.dart';
 import 'package:self_host_group_chat_app/features/presentation/widgets/theme/style.dart';
 import '../../../core/constants/app_const.dart';
+import '../../../core/services/network/bloc/network_bloc.dart';
 
 @RoutePage()
 class HomePage extends StatefulWidget {
@@ -52,6 +53,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    context.read<NetworkBloc>().add(NetworkObserve());
+
     BlocProvider.of<UserCubit>(context).getUsers();
     BlocProvider.of<GroupCubit>(context).getGroups(widget.uid);
     _searchTextController.addListener(() {

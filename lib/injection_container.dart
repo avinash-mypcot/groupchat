@@ -14,6 +14,7 @@ import 'package:self_host_group_chat_app/features/data/repositories/send_text_me
 import 'package:self_host_group_chat_app/features/data/repositories/update_group_repository.dart';
 import 'package:self_host_group_chat_app/features/presentation/cubit/group/group_cubit.dart';
 import 'package:self_host_group_chat_app/features/presentation/cubit/user/user_cubit.dart';
+import 'core/services/network/bloc/network_bloc.dart';
 import 'core/services/notification/notification_service.dart';
 import 'features/data/api/firebase_remote_data_source.dart';
 import 'features/data/services/firebase_services.dart';
@@ -32,6 +33,11 @@ final serviceLocator = GetIt.instance;
 Future<void> init() async {
   serviceLocator
       .registerFactory<FirebaseCloudMessaging>(() => FirebaseCloudMessaging());
+  await serviceLocator<FirebaseCloudMessaging>().getFirebaseNotification();
+  await serviceLocator<FirebaseCloudMessaging>().setupFlutterNotifications();
+  serviceLocator.registerFactory(
+    () => NetworkBloc(),
+  );
   //Future bloc
   serviceLocator.registerFactory<AuthCubit>(() => AuthCubit(
         isSignInRepository: serviceLocator.call(),
