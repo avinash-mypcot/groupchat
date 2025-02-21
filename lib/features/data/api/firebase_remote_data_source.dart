@@ -3,16 +3,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive_flutter/adapters.dart';
-import 'package:self_host_group_chat_app/features/data/models/engage_user_entity.dart';
-import 'package:self_host_group_chat_app/features/data/models/group_entity.dart';
-import 'package:self_host_group_chat_app/features/data/models/my_chat_entity.dart';
-import 'package:self_host_group_chat_app/features/data/models/text_messsage_entity.dart';
-import 'package:self_host_group_chat_app/features/data/models/user_entity.dart';
-import 'package:self_host_group_chat_app/injection_container.dart';
+import 'package:group_chat/features/data/models/engage_user_entity.dart';
+import 'package:group_chat/features/data/models/group_entity.dart';
+import 'package:group_chat/features/data/models/my_chat_entity.dart';
+import 'package:group_chat/features/data/models/user_entity.dart';
+import 'package:group_chat/injection_container.dart';
+import '../../../core/services/hive/hive_model.dart';
 import '../../../core/services/network/bloc/network_bloc.dart';
 import '../models/group_model.dart';
 import '../models/my_chat_model.dart';
-import '../models/text_message_model.dart';
 import '../models/user_model.dart';
 
 class FirebaseRemoteDataSource {
@@ -165,7 +164,7 @@ class FirebaseRemoteDataSource {
   }
 
   Future<void> sendTextMessage(
-      TextMessageEntity textMessageEntity, String channelId) async {
+      TextMessageModel textMessageEntity, String channelId) async {
     final messagesRef = fireStore
         .collection("groupChatChannel")
         .doc(channelId)
@@ -186,52 +185,62 @@ class FirebaseRemoteDataSource {
     );
     final currentState = serviceLocator<NetworkBloc>().state;
     // Save to Firebase if connected
-    if (await currentState is NetworkSuccess) {
+    // if (await currentState is NetworkSuccess) {
+    log("STORING LOCAL DATA");
+    try {
       await messagesRef.doc(messageId).set(newMessage.toDocument());
+    } catch (e) {
+      log("STORING LOCAL DATA11$e");
     }
 
+    // } else {
     // Save to Hive for offline storage
-    var box = await Hive.box<TextMessageModel>('messages');
-    box.put(messageId, newMessage);
+    // var box = await Hive.box<TextMessageModel>('messages');
+    // box.put(messageId, newMessage);
+    // }
   }
 
-  Stream<List<TextMessageEntity>> getMessages(String channelId) async* {
+  Stream<List<TextMessageModel>> getMessages(String channelId) async* {
     final oneToOneChatChannelRef = fireStore.collection("groupChatChannel");
     final messagesRef =
         oneToOneChatChannelRef.doc(channelId).collection("messages");
     final currentState = serviceLocator<NetworkBloc>().state;
     // Save to Firebase if connected
     log('GET MESSAGE1212$currentState');
-    if (await currentState is NetworkSuccess) {
-      log('GET MESSAGE ');
-      yield* messagesRef.orderBy('time').snapshots().map((querySnap) {
-        final messages = querySnap.docs
-            .map((queryDoc) => TextMessageModel.fromSnapshot(queryDoc))
-            .where((message) =>
-                message.expiredAt!.toDate().isAfter(DateTime.now()))
-            .toList();
+    // if (await currentState is NetworkSuccess) {
+    yield* messagesRef.orderBy('time').snapshots().map((querySnap) {
+      final messages = querySnap.docs
+          .map((queryDoc) => TextMessageModel.fromSnapshot(queryDoc))
+          .where((message) => message.expiredAt!.isAfter(DateTime.now()))
+          .toList();
 
-        // Save to Hive
-        _saveMessagesToHive(channelId, messages);
+      // Save to Hive
+      _saveMessagesToHive(channelId, messages);
 
-        return messages;
-      });
-    } else {
-      // If offline, get messages from Hive
-      var box = await Hive.box<TextMessageModel>('messages');
-      yield box.values.toList();
-    }
+      return messages;
+    });
+    // } else {
+    //   log('GET Offline MESSAGE ');
+    //   // If offline, get messages from Hive
+    //   var box = await Hive.box<TextMessageModel1>('messages');
+    //   log("${box.values.length}");
+    //   yield [];
+    // }
   }
 
   Future<void> _saveMessagesToHive(
       String channelId, List<TextMessageModel> messages) async {
     try {
-      var box = Hive.box<TextMessageModel>('messages');
-      for (var message in messages) {
-        await Future.delayed(Duration(
-            milliseconds: 10)); // Small delay to prevent race condition
-        await box.put(message.messageId, message);
+      if (Hive.isBoxOpen('messages')) {
+        var box = Hive.box<TextMessageModel>('messages');
+      } else {
+        log("The 'messages' box is not open yet.");
       }
+      // for (var message in messages) {
+      //   await Future.delayed(Duration(
+      //       milliseconds: 10)); // Small delay to prevent race condition
+      //   await box.put(message.messageId, message);
+      // }
     } catch (e) {
       log("E$e");
     }

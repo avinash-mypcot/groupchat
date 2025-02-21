@@ -2,11 +2,11 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:self_host_group_chat_app/features/data/models/group_entity.dart';
-import 'package:self_host_group_chat_app/features/data/repositories/create_group_repository.dart';
-import 'package:self_host_group_chat_app/features/data/repositories/get_all_group_repository.dart';
-import 'package:self_host_group_chat_app/features/data/repositories/join_group_repository.dart';
-import 'package:self_host_group_chat_app/features/data/repositories/update_group_repository.dart';
+import 'package:group_chat/features/data/models/group_entity.dart';
+import 'package:group_chat/features/data/repositories/create_group_repository.dart';
+import 'package:group_chat/features/data/repositories/get_all_group_repository.dart';
+import 'package:group_chat/features/data/repositories/join_group_repository.dart';
+import 'package:group_chat/features/data/repositories/update_group_repository.dart';
 part 'group_state.dart';
 
 class GroupCubit extends Cubit<GroupState> {

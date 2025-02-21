@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
 import '../../hive/hive_model.dart';
 import '../services/network_services.dart';
 part 'network_event.dart';
@@ -27,7 +26,6 @@ class NetworkBloc extends Bloc<NetworkEvent, NetworkState> {
   // }
 
   void _observe(NetworkObserve event, Emitter<NetworkState> emit) {
-    log("IN OBSERVENETWORK :::");
     NetworkService.observeNetwork().listen((isConnected) {
       add(NetworkNotify(isConnected: isConnected));
       if (isConnected) {
@@ -42,8 +40,8 @@ class NetworkBloc extends Bloc<NetworkEvent, NetworkState> {
 }
 
 Future<void> _syncLocalMessages() async {
-  var keys =
-      await Hive.box<TextMessageModel>('messages').keys; // Get all stored keys
+  log("IN SYNC");
+  var keys = await Hive.box<TextMessageModel>('messages').keys; // Get all stored keys
   for (var key in keys) {
     var box = await Hive.box<TextMessageModel>(key);
     for (var message in box.values) {
@@ -54,6 +52,6 @@ Future<void> _syncLocalMessages() async {
           .doc(message.messageId)
           .set(message.toDocument());
     }
-    await box.clear(); // Clear local storage after syncing
+    // await box.clear(); // Clear local storage after syncing
   }
 }

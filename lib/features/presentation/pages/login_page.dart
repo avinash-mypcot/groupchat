@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:self_host_group_chat_app/features/presentation/cubit/auth/auth_cubit.dart';
-import 'package:self_host_group_chat_app/features/presentation/cubit/credential/credential_cubit.dart';
-import 'package:self_host_group_chat_app/features/presentation/widgets/common.dart';
-import 'package:self_host_group_chat_app/features/presentation/widgets/theme/style.dart';
+import 'package:group_chat/features/presentation/cubit/auth/auth_cubit.dart';
+import 'package:group_chat/features/presentation/cubit/credential/credential_cubit.dart';
+import 'package:group_chat/features/presentation/widgets/common.dart';
+import 'package:group_chat/features/presentation/widgets/theme/style.dart';
 import '../../../core/routes/page_const.dart';
 import 'home_page.dart';
 

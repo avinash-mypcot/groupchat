@@ -6,12 +6,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:self_host_group_chat_app/features/data/models/group_entity.dart';
-import 'package:self_host_group_chat_app/features/data/models/single_chat_entity.dart';
-import 'package:self_host_group_chat_app/features/data/models/text_messsage_entity.dart';
-import 'package:self_host_group_chat_app/features/presentation/cubit/chat/chat_cubit.dart';
-import 'package:self_host_group_chat_app/features/presentation/cubit/group/group_cubit.dart';
+import 'package:group_chat/features/data/models/group_entity.dart';
+import 'package:group_chat/features/data/models/single_chat_entity.dart';
+import 'package:group_chat/features/presentation/cubit/chat/chat_cubit.dart';
+import 'package:group_chat/features/presentation/cubit/group/group_cubit.dart';
 
+import '../../../core/services/hive/hive_model.dart';
 import '../widgets/theme/style.dart';
 
 class SingleChatPage extends StatefulWidget {
@@ -29,6 +29,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
   int _disappearTime = 2; // Default disappearing time in minutes
   String _timeUnit = 'Minutes';
   String messageContent = "";
+  bool isEnableDis = false;
   TextEditingController _messageController = TextEditingController();
   ScrollController _scrollController = ScrollController();
 
@@ -49,7 +50,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
     super.dispose();
   }
 
-  Timestamp setExpirationTime(int duration, String timeUnit) {
+  DateTime setExpirationTime(int duration, String timeUnit) {
     int milliseconds = 0;
 
     if (timeUnit == "Minutes") {
@@ -67,7 +68,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
     }
 
     // Calculate the expiration time by adding the specified time duration to the current time
-    return Timestamp.fromMillisecondsSinceEpoch(
+    return DateTime.fromMillisecondsSinceEpoch(
       Timestamp.now().millisecondsSinceEpoch + milliseconds,
     );
   }
@@ -160,7 +161,6 @@ class _SingleChatPageState extends State<SingleChatPage> {
                       );
                     }).toList(),
                   ),
-                  // Slider to select the duration value
                   Slider(
                     value: _disappearTime.toDouble(),
                     min: 1,
@@ -184,6 +184,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
                 TextButton(
                   onPressed: () {
                     setState(() {
+                      isEnableDis = true;
                       _isDisappearingEnabled =
                           true; // Enable disappearing messages
                     });
@@ -350,13 +351,18 @@ class _SingleChatPageState extends State<SingleChatPage> {
               } else {
                 print(_messageController.text);
                 BlocProvider.of<ChatCubit>(context).sendTextMessage(
-                    textMessageEntity: TextMessageEntity(
-                        expiredAt: setExpirationTime(_disappearTime, _timeUnit),
-                        time: Timestamp.now(),
+                    textMessageEntity: TextMessageModel(
+                        messageId: '',
+                        expiredAt: isEnableDis
+                            ? setExpirationTime(_disappearTime, _timeUnit)
+                            : DateTime(2030),
+                        time: DateTime.now(),
                         senderId: widget.singleChatEntity.uid,
                         content: _messageController.text,
                         senderName: widget.singleChatEntity.username,
-                        type: "TEXT"),
+                        type: "TEXT",
+                        receiverName: '',
+                        recipientId: ''),
                     channelId: widget.singleChatEntity.groupId);
                 BlocProvider.of<GroupCubit>(context).updateGroup(
                     groupEntity: GroupEntity(
@@ -404,7 +410,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
           final message = messages.messages[index];
 
           // Convert to local time based on the device's timezone
-          final localTime = message.time!.toDate().toLocal();
+          final localTime = message.time!.toLocal();
           final formattedTime = DateFormat('hh:mm a').format(localTime);
 
           if (message.senderId == widget.singleChatEntity.uid) {

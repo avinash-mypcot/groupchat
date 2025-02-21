@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:self_host_group_chat_app/features/data/models/user_entity.dart';
-import 'package:self_host_group_chat_app/features/presentation/widgets/profile_widget.dart';
+import 'package:group_chat/features/data/models/user_entity.dart';
+import 'package:group_chat/features/presentation/widgets/profile_widget.dart';
 
 class SingleItemStoriesStatusWidget extends StatelessWidget {
   final UserEntity user;

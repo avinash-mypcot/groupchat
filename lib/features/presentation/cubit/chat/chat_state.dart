@@ -15,7 +15,7 @@ class ChatLoading extends ChatState {
 }
 
 class ChatLoaded extends ChatState {
-  final List<TextMessageEntity> messages;
+  final List<TextMessageModel> messages;
 
   ChatLoaded({required this.messages});
   @override

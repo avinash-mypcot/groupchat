@@ -1,5 +1,5 @@
-import 'package:self_host_group_chat_app/features/data/models/my_chat_entity.dart';
-import 'package:self_host_group_chat_app/features/data/services/firebase_services.dart';
+import 'package:group_chat/features/data/models/my_chat_entity.dart';
+import 'package:group_chat/features/data/services/firebase_services.dart';
 
 class CreateNewGroupRepository {
   final FirebaseServices repository;

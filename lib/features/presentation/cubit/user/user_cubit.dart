@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:self_host_group_chat_app/features/data/models/user_entity.dart';
-import 'package:self_host_group_chat_app/features/data/repositories/get_all_users_repository.dart';
-import 'package:self_host_group_chat_app/features/data/repositories/get_update_user_repository.dart';
+import 'package:group_chat/features/data/models/user_entity.dart';
+import 'package:group_chat/features/data/repositories/get_all_users_repository.dart';
+import 'package:group_chat/features/data/repositories/get_update_user_repository.dart';
 
 part 'user_state.dart';
 

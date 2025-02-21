@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:self_host_group_chat_app/features/data/models/user_model.dart';
-import 'package:self_host_group_chat_app/features/data/models/group_entity.dart';
-import 'package:self_host_group_chat_app/features/data/models/single_chat_entity.dart';
-import 'package:self_host_group_chat_app/features/presentation/cubit/group/group_cubit.dart';
-import 'package:self_host_group_chat_app/features/presentation/cubit/user/user_cubit.dart';
-import 'package:self_host_group_chat_app/features/presentation/widgets/single_item_group_widget.dart';
-import 'package:self_host_group_chat_app/core/routes/page_const.dart';
-import 'package:self_host_group_chat_app/features/presentation/widgets/theme/style.dart';
+import 'package:group_chat/features/data/models/user_model.dart';
+import 'package:group_chat/features/data/models/group_entity.dart';
+import 'package:group_chat/features/data/models/single_chat_entity.dart';
+import 'package:group_chat/features/presentation/cubit/group/group_cubit.dart';
+import 'package:group_chat/features/presentation/cubit/user/user_cubit.dart';
+import 'package:group_chat/features/presentation/widgets/single_item_group_widget.dart';
+import 'package:group_chat/core/routes/page_const.dart';
+import 'package:group_chat/features/presentation/widgets/theme/style.dart';
 
 import '../../../core/services/network/bloc/network_bloc.dart';
 

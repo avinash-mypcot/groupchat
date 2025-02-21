@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:self_host_group_chat_app/features/data/models/single_chat_entity.dart';
-import 'package:self_host_group_chat_app/features/presentation/pages/create_group_page.dart';
-import 'package:self_host_group_chat_app/features/presentation/pages/single_chat_page.dart';
-import 'package:self_host_group_chat_app/core/routes/page_const.dart';
+import 'package:group_chat/features/data/models/single_chat_entity.dart';
+import 'package:group_chat/features/presentation/pages/create_group_page.dart';
+import 'package:group_chat/features/presentation/pages/single_chat_page.dart';
+import 'package:group_chat/core/routes/page_const.dart';
 import '../../features/presentation/pages/forgot_page.dart';
 import '../../features/presentation/pages/login_page.dart';
 import '../../features/presentation/pages/registration_page.dart';

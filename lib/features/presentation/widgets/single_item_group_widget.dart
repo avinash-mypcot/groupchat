@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:self_host_group_chat_app/features/data/models/group_entity.dart';
-import 'package:self_host_group_chat_app/features/presentation/widgets/profile_widget.dart';
+import 'package:group_chat/features/data/models/group_entity.dart';
+import 'package:group_chat/features/presentation/widgets/profile_widget.dart';
 
 class SingleItemGroupWidget extends StatelessWidget {
   final GroupEntity group;
   final VoidCallback onTap;
 
-  const SingleItemGroupWidget({Key? key, required this.group,required this.onTap}) : super(key: key);
+  const SingleItemGroupWidget(
+      {Key? key, required this.group, required this.onTap})
+      : super(key: key);
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.only(top: 10,right: 10,left: 10),
+        padding: EdgeInsets.only(top: 10, right: 10, left: 10),
         child: Column(
           children: [
             Row(
@@ -40,12 +42,16 @@ class SingleItemGroupWidget extends StatelessWidget {
                         children: [
                           Text(
                             "${group.groupName}",
-                            style:
-                            TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w500),
                           ),
-                          SizedBox(height: 5,),
+                          SizedBox(
+                            height: 5,
+                          ),
                           Text(
-                            group.lastMessage==null|| group.lastMessage==""?"${group.groupName}":"${group.lastMessage}",
+                            group.lastMessage == null || group.lastMessage == ""
+                                ? "${group.groupName}"
+                                : "${group.lastMessage}",
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -56,11 +62,14 @@ class SingleItemGroupWidget extends StatelessWidget {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 60,right: 10),
-              child: Divider(thickness: 1.50,),
+              padding: const EdgeInsets.only(left: 60, right: 10),
+              child: Divider(
+                thickness: 1.50,
+              ),
             ),
           ],
         ),
       ),
     );
-  }}
+  }
+}

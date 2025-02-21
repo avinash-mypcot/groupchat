@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:self_host_group_chat_app/features/presentation/widgets/common.dart';
-import 'package:self_host_group_chat_app/features/presentation/widgets/textfield_container.dart';
-import 'package:self_host_group_chat_app/features/presentation/widgets/theme/style.dart';
+import 'package:group_chat/features/presentation/widgets/common.dart';
+import 'package:group_chat/features/presentation/widgets/textfield_container.dart';
+import 'package:group_chat/features/presentation/widgets/theme/style.dart';
 import '../../../core/constants/app_const.dart';
 import '../../../core/routes/page_const.dart';
 

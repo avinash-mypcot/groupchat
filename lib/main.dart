@@ -2,10 +2,10 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/adapters.dart';
-import 'package:self_host_group_chat_app/core/constants/app_const.dart';
-import 'package:self_host_group_chat_app/features/presentation/cubit/chat/chat_cubit.dart';
-import 'package:self_host_group_chat_app/features/presentation/cubit/user/user_cubit.dart';
-import 'package:self_host_group_chat_app/features/presentation/pages/login_page.dart';
+import 'package:group_chat/core/constants/app_const.dart';
+import 'package:group_chat/features/presentation/cubit/chat/chat_cubit.dart';
+import 'package:group_chat/features/presentation/cubit/user/user_cubit.dart';
+import 'package:group_chat/features/presentation/pages/login_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'core/services/hive/hive_model.dart';
 import 'core/services/network/bloc/network_bloc.dart';
@@ -52,8 +52,6 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(TextMessageModelAdapter());
   await Hive.openBox<TextMessageModel>('messages');
-  // await serviceLocator<FirebaseCloudMessaging>().getFirebaseNotification();
-  // await serviceLocator<FirebaseCloudMessaging>().setupFlutterNotifications();
   runApp(MyApp());
 }
 

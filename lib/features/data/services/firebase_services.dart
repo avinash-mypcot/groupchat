@@ -1,11 +1,11 @@
-import 'package:self_host_group_chat_app/features/data/models/engage_user_entity.dart';
-import 'package:self_host_group_chat_app/features/data/models/group_entity.dart';
-import 'package:self_host_group_chat_app/features/data/models/my_chat_entity.dart';
-import 'package:self_host_group_chat_app/features/data/models/text_messsage_entity.dart';
-import 'package:self_host_group_chat_app/features/data/models/user_entity.dart';
+import 'package:group_chat/features/data/models/engage_user_entity.dart';
+import 'package:group_chat/features/data/models/group_entity.dart';
+import 'package:group_chat/features/data/models/my_chat_entity.dart';
+import 'package:group_chat/features/data/models/user_entity.dart';
+import '../../../core/services/hive/hive_model.dart';
 import '../api/firebase_remote_data_source.dart';
 
- class FirebaseServices {
+class FirebaseServices {
   final FirebaseRemoteDataSource remoteDataSource;
 
   FirebaseServices({required this.remoteDataSource});
@@ -29,14 +29,16 @@ import '../api/firebase_remote_data_source.dart';
 
   Stream<List<UserEntity>> getAllUsers() => remoteDataSource.getAllUsers();
 
-  Future<String> createOneToOneChatChannel(EngageUserEntity engageUserEntity) async =>
+  Future<String> createOneToOneChatChannel(
+          EngageUserEntity engageUserEntity) async =>
       remoteDataSource.createOneToOneChatChannel(engageUserEntity);
 
   Future<void> sendTextMessage(
-          TextMessageEntity textMessageEntity, String channelId) async {
-      return await remoteDataSource.sendTextMessage(textMessageEntity, channelId);
-}
-  Stream<List<TextMessageEntity>> getMessages(String channelId) {
+      TextMessageModel textMessageEntity, String channelId) async {
+    return await remoteDataSource.sendTextMessage(textMessageEntity, channelId);
+  }
+
+  Stream<List<TextMessageModel>> getMessages(String channelId) {
     return remoteDataSource.getMessages(channelId);
   }
 
@@ -44,33 +46,32 @@ import '../api/firebase_remote_data_source.dart';
     return remoteDataSource.getChannelId(engageUserEntity);
   }
 
-  Future<void> addToMyChat(MyChatEntity myChatEntity) async{
-   return await remoteDataSource.addToMyChat(myChatEntity);
+  Future<void> addToMyChat(MyChatEntity myChatEntity) async {
+    return await remoteDataSource.addToMyChat(myChatEntity);
   }
 
   Stream<List<MyChatEntity>> getMyChat(String uid) {
-   return remoteDataSource.getMyChat(uid);
+    return remoteDataSource.getMyChat(uid);
   }
 
-  Future<void> createNewGroup(MyChatEntity myChatEntity, List<String> selectUserList) {
+  Future<void> createNewGroup(
+      MyChatEntity myChatEntity, List<String> selectUserList) {
     return remoteDataSource.createNewGroup(myChatEntity, selectUserList);
   }
 
-  Future<void> getCreateNewGroupChatRoom(MyChatEntity myChatEntity, List<String> selectUserList) {
+  Future<void> getCreateNewGroupChatRoom(
+      MyChatEntity myChatEntity, List<String> selectUserList) {
     return remoteDataSource.createNewGroup(myChatEntity, selectUserList);
   }
 
-  Future<void> googleAuth() async =>
-      remoteDataSource.googleAuth();
+  Future<void> googleAuth() async => remoteDataSource.googleAuth();
 
   Future<void> forgotPassword(String email) async =>
       remoteDataSource.forgotPassword(email);
 
-  Future<void> signIn(UserEntity user) async =>
-      remoteDataSource.signIn(user);
+  Future<void> signIn(UserEntity user) async => remoteDataSource.signIn(user);
 
-  Future<void> signUp(UserEntity user) async =>
-      remoteDataSource.signUp(user);
+  Future<void> signUp(UserEntity user) async => remoteDataSource.signUp(user);
 
   Future<void> getUpdateUser(UserEntity user) async =>
       remoteDataSource.getUpdateUser(user);
@@ -78,8 +79,7 @@ import '../api/firebase_remote_data_source.dart';
   Future<void> getCreateGroup(GroupEntity groupEntity) async =>
       remoteDataSource.getCreateGroup(groupEntity);
 
-  Stream<List<GroupEntity>> getGroups() =>
-      remoteDataSource.getGroups();
+  Stream<List<GroupEntity>> getGroups() => remoteDataSource.getGroups();
 
   Future<void> joinGroup(GroupEntity groupEntity) async =>
       remoteDataSource.joinGroup(groupEntity);

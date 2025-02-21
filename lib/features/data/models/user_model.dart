@@ -1,17 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:self_host_group_chat_app/features/data/models/user_entity.dart';
+import 'package:group_chat/features/data/models/user_entity.dart';
 
 class UserModel extends UserEntity {
   UserModel({
     String name = "username",
     String email = "",
-    String phoneNumber= "",
-    bool isOnline= false,
-    String uid= "",
+    String phoneNumber = "",
+    bool isOnline = false,
+    String uid = "",
     String status = "",
     String profileUrl = "",
-    String dob= "",
-    String gender= "",
+    String dob = "",
+    String gender = "",
   }) : super(
           name: name,
           email: email,
@@ -21,7 +21,7 @@ class UserModel extends UserEntity {
           status: status,
           profileUrl: profileUrl,
           gender: gender,
-          dob:dob,
+          dob: dob,
         );
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -33,7 +33,6 @@ class UserModel extends UserEntity {
       uid: json['uid'],
       status: json['status'],
       profileUrl: json['profileUrl'],
-
     );
   }
 

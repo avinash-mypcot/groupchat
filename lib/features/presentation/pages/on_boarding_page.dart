@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:self_host_group_chat_app/features/data/models/onBoarding_entity.dart';
-import 'package:self_host_group_chat_app/features/presentation/widgets/theme/style.dart';
+import 'package:group_chat/features/data/models/onBoarding_entity.dart';
+import 'package:group_chat/features/presentation/widgets/theme/style.dart';
 import '../../../core/routes/page_const.dart';
 
 class OnBoardingPage extends StatefulWidget {

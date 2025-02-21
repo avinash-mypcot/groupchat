@@ -1,4 +1,4 @@
-import 'package:self_host_group_chat_app/features/data/services/firebase_services.dart';
+import 'package:group_chat/features/data/services/firebase_services.dart';
 
 class IsSignInRepository {
   final FirebaseServices repository;

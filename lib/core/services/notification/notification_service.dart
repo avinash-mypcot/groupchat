@@ -10,6 +10,12 @@ import 'package:path_provider/path_provider.dart';
 // setupInteractedMessage called when app in terminate state
 
 class FirebaseCloudMessaging {
+  final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
+  FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
+
+  /// Create a [AndroidNotificationChannel] for heads up notifications
+  late AndroidNotificationChannel channel;
+
   Future<void> setupInteractedMessage() async {
     // Get any messages which caused the application to open from
     // a terminated state.
@@ -29,38 +35,39 @@ class FirebaseCloudMessaging {
   //Handle Terminated messages here
   void _handleMessage(RemoteMessage message) {
     showFlutterNotification(message);
-    print(message.data);
     // handleRouteFromMessage(message.data);
   }
 
   void handleRouteFromMessage(Map<String, dynamic> message) {
     switch (message['type']) {
       case 'Home':
-        // serviceLocator<AppRouter>().push(const HomeRoute());
         break;
       case 'Category':
-        // serviceLocator<CategoriesBloc>().add(const CategoriesFetchEvent());
-        // serviceLocator<AppRouter>().push(const CategoriesRoute());
         break;
       default:
         break;
     }
   }
 
-  final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-  FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
-
-  /// Create a [AndroidNotificationChannel] for heads up notifications
-  late AndroidNotificationChannel channel;
-
   getFirebaseNotification() async {
     String fcmToken;
+    FirebaseMessaging.instance.getAPNSToken().then((APNStoken) {
+      print('here is APN token ---$APNStoken');
+    });
     firebaseMessaging.getToken().then((value) async {
       fcmToken = value.toString();
       print('here is fcm token ---$fcmToken');
     }).catchError((onError) {
       print("Exception: $onError");
     });
+
+    FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
+      // Note: This callback is fired at each app startup and whenever a new
+      // token is generated.
+    }).onError((err) {
+      // Error getting token.
+    });
+
     //For Foreground Notifications
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       showFlutterNotification(message);
@@ -117,6 +124,13 @@ class FirebaseCloudMessaging {
     }
   }
 
+  //-- Foreground
+  void onReceiveNotificationResponse(NotificationResponse payload) async {
+    //Foreground redirection code
+    // Parse the payload to get the data
+    handleRouteFromMessage({"type": payload.payload});
+  }
+
   Future<void> setupFlutterNotifications() async {
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
@@ -135,7 +149,6 @@ class FirebaseCloudMessaging {
           provisional: false);
     }
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    log('flutterLocalNotificationsPlugin initialized: ${flutterLocalNotificationsPlugin == null}');
     AndroidInitializationSettings initializationSettingsAndroid =
         const AndroidInitializationSettings('@mipmap/ic_launcher');
     // const AndroidInitializationSettings('ic_notification');
@@ -161,13 +174,6 @@ class FirebaseCloudMessaging {
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
     );
-
-    //-- Foreground
-    void onReceiveNotificationResponse(NotificationResponse payload) async {
-      //Foreground redirection code
-      // Parse the payload to get the data
-      handleRouteFromMessage({"type": payload.payload});
-    }
 
     await flutterLocalNotificationsPlugin?.initialize(initializationSettings,
         onDidReceiveNotificationResponse: onReceiveNotificationResponse);

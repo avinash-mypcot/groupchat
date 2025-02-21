@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
-import 'package:self_host_group_chat_app/features/data/models/group_entity.dart';
+import 'package:group_chat/features/data/models/group_entity.dart';
 
 class GroupModel extends GroupEntity {
   GroupModel({
