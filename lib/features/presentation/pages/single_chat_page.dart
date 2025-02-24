@@ -12,6 +12,8 @@ import 'package:group_chat/features/presentation/cubit/chat/chat_cubit.dart';
 import 'package:group_chat/features/presentation/cubit/group/group_cubit.dart';
 
 import '../../../core/services/hive/hive_model.dart';
+import '../../../core/services/notification/push_notification_service.dart';
+import '../../data/api/firebase_remote_data_source.dart';
 import '../widgets/theme/style.dart';
 
 class SingleChatPage extends StatefulWidget {
@@ -32,6 +34,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
   bool isEnableDis = false;
   TextEditingController _messageController = TextEditingController();
   ScrollController _scrollController = ScrollController();
+  List<String> fcm = [];
 
   @override
   void initState() {
@@ -272,6 +275,10 @@ class _SingleChatPageState extends State<SingleChatPage> {
   }
 
   Widget _sendMessageTextField() {
+    fcm.isNotEmpty
+        ? PushNotificationService.sendNotificationToSelectedDriver(
+            fcm[0], context, '12')
+        : null;
     return Container(
       margin: EdgeInsets.only(bottom: 10, left: 4, right: 4),
       child: Row(
@@ -426,6 +433,9 @@ class _SingleChatPageState extends State<SingleChatPage> {
               text: message.content,
             );
           } else {
+            log("FCM FCM");
+            // FirebaseRemoteDataSource(ServiceLocator<>()).getFcmTokenByUid(message.senderId!);
+            fcm.add(message.senderId!);
             return _messageLayout(
               color: Colors.white,
               name: "${message.senderName}",

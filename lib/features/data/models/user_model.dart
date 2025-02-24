@@ -12,7 +12,9 @@ class UserModel extends UserEntity {
     String profileUrl = "",
     String dob = "",
     String gender = "",
+    String fcmToken =''
   }) : super(
+          fcmToken:fcmToken,
           name: name,
           email: email,
           phoneNumber: phoneNumber,
@@ -33,6 +35,7 @@ class UserModel extends UserEntity {
       uid: json['uid'],
       status: json['status'],
       profileUrl: json['profileUrl'],
+      fcmToken: json['fcmToken']
     );
   }
 
@@ -47,6 +50,7 @@ class UserModel extends UserEntity {
       profileUrl: snapshot.get('profileUrl'),
       dob: snapshot.get('dob'),
       gender: snapshot.get('gender'),
+      fcmToken: snapshot.get('fcmToken')
     );
   }
 
@@ -61,6 +65,7 @@ class UserModel extends UserEntity {
       "profileUrl": profileUrl,
       "dob": dob,
       "gender": gender,
+      "fcmToken": fcmToken
     };
   }
 }

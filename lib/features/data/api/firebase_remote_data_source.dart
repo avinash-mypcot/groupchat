@@ -2,7 +2,6 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:hive_flutter/adapters.dart';
 import 'package:group_chat/features/data/models/engage_user_entity.dart';
 import 'package:group_chat/features/data/models/group_entity.dart';
 import 'package:group_chat/features/data/models/my_chat_entity.dart';
@@ -22,6 +21,22 @@ class FirebaseRemoteDataSource {
   String _verificationId = "";
 
   FirebaseRemoteDataSource(this.fireStore, this.auth, this.googleSignIn);
+ Future<String?> getFcmTokenByUid(String uid) async {
+  try {
+    final userDoc = await fireStore.collection("users").doc(uid).get();
+
+    if (userDoc.exists && userDoc.data() != null) {
+      return userDoc.data()?["fcmToken"];
+    } else {
+      print("User not found");
+      return null;
+    }
+  } catch (e) {
+    print("Error fetching FCM token: $e");
+    return null;
+  }
+}
+
 
   Future<void> getCreateCurrentUser(UserEntity user) async {
     final userCollection = fireStore.collection("users");
@@ -37,6 +52,8 @@ class FirebaseRemoteDataSource {
         status: user.status,
         dob: user.dob,
         gender: user.gender,
+        fcmToken: user.fcmToken
+        
       ).toDocument();
       if (!userDoc.exists) {
         userCollection.doc(uid).set(newUser);
@@ -215,7 +232,7 @@ class FirebaseRemoteDataSource {
           .toList();
 
       // Save to Hive
-      _saveMessagesToHive(channelId, messages);
+      // _saveMessagesToHive(channelId, messages);
 
       return messages;
     });
@@ -227,65 +244,6 @@ class FirebaseRemoteDataSource {
     //   yield [];
     // }
   }
-
-  Future<void> _saveMessagesToHive(
-      String channelId, List<TextMessageModel> messages) async {
-    try {
-      if (Hive.isBoxOpen('messages')) {
-        var box = Hive.box<TextMessageModel>('messages');
-      } else {
-        log("The 'messages' box is not open yet.");
-      }
-      // for (var message in messages) {
-      //   await Future.delayed(Duration(
-      //       milliseconds: 10)); // Small delay to prevent race condition
-      //   await box.put(message.messageId, message);
-      // }
-    } catch (e) {
-      log("E$e");
-    }
-  }
-
-  // Future<void> sendTextMessage(
-  //     TextMessageEntity textMessageEntity, String channelId) async {
-  //   final messagesRef = fireStore
-  //       .collection("groupChatChannel")
-  //       .doc(channelId)
-  //       .collection("messages");
-
-  //   //MessageId
-  //   final messageId = messagesRef.doc().id;
-
-  //   final newMessage = TextMessageModel(
-  //     expiredAt: textMessageEntity.expiredAt,
-  //     content: textMessageEntity.content,
-  //     messageId: messageId,
-  //     receiverName: textMessageEntity.receiverName,
-  //     recipientId: textMessageEntity.recipientId,
-  //     senderId: textMessageEntity.senderId,
-  //     senderName: textMessageEntity.senderName,
-  //     time: textMessageEntity.time,
-  //     type: textMessageEntity.type,
-  //   ).toDocument();
-
-  //   messagesRef.doc(messageId).set(newMessage);
-  // }
-
-  // Stream<List<TextMessageEntity>> getMessages(String channelId) {
-  //   final oneToOneChatChannelRef = fireStore.collection("groupChatChannel");
-  //   final messagesRef =
-  //       oneToOneChatChannelRef.doc(channelId).collection("messages");
-
-  //   return messagesRef
-  //       .orderBy('time') // Ensure ordering by time
-  //       .snapshots()
-  //       .map((querySnap) => querySnap.docs
-  //           .map((queryDoc) => TextMessageModel.fromSnapshot(queryDoc))
-  //           .where((message) => message.expiredAt!
-  //               .toDate()
-  //               .isAfter(DateTime.now())) // Filter expired messages
-  //           .toList());
-  // }
 
   Future<void> addToMyChat(MyChatEntity myChatEntity) async {
     final myChatRef = fireStore
@@ -360,32 +318,6 @@ class FirebaseRemoteDataSource {
     print("createNewGroup ${myChatEntity.channelId}");
     print(myChatEntity.senderUID);
     await _createGroup(myChatEntity, selectUserList);
-    // final myChatRef = fireStore
-    //     .collection("users")
-    //     .doc(myChatEntity.senderUID)
-    //     .collection("myChat");
-    //
-    // final groupChatRef = fireStore.collection("groupChatChannel");
-    // var channel = {'channelId': myChatEntity.channelId};
-    //
-    //
-    // await groupChatRef.doc(myChatEntity.channelId).set(channel).then((value)async {
-    //
-    //
-    //
-    //   // myChatRef.doc(myChatEntity.channelId).set(myNewChatCurrentUser).catchError((error) {
-    //   //   print(error);
-    //   // });
-    // });
-    /*
-        user -> uid -> myChatCollection ->  xyzGroup
-        */
-    // selectUserList.forEach((otherUid) {
-    //   otherChatRef.doc(otherUid)
-    //       .collection("myChat")
-    //       .doc(myChatEntity.channelId)
-    //       .set(myNewChatCurrentUser);
-    // });
     return;
   }
 

@@ -12,8 +12,11 @@ class UserEntity extends Equatable {
   final String password;
   final String dob;
   final String gender;
+  final String fcmToken;
+
 
   UserEntity({
+    this.fcmToken='',
     this.name="",
     this.email="",
     this.phoneNumber="",
@@ -30,6 +33,7 @@ class UserEntity extends Equatable {
   // TODO: implement props
   List<Object> get props => [
     name,
+    fcmToken,
     email,
     phoneNumber,
     isOnline,

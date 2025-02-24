@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:group_chat/injection_container.dart';
 import 'package:intl/intl.dart';
 import 'package:group_chat/features/data/models/user_entity.dart';
 import 'package:group_chat/features/presentation/cubit/auth/auth_cubit.dart';
@@ -536,7 +538,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         });
   }
 
-  _submitSignUp() {
+  _submitSignUp() async {
     if (_usernameController.text.isEmpty) {
       toast('Enter your username');
       return;
@@ -558,9 +560,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
       toast("Both passwords must be the same");
       return;
     }
-
+    final token = await FirebaseMessaging.instance.getToken() ?? '';
     BlocProvider.of<CredentialCubit>(context).signUpSubmit(
       user: UserEntity(
+        fcmToken: token,
         email: _emailController.text,
         phoneNumber: _numberController.text,
         name: _usernameController.text,

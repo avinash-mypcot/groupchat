@@ -12,7 +12,8 @@ class FirebaseServices {
 
   Future<void> getCreateCurrentUser(UserEntity user) async =>
       await remoteDataSource.getCreateCurrentUser(user);
-
+  Future<void> getFcmTokenByUid(String user) async =>
+      await remoteDataSource.getFcmTokenByUid(user);
   Future<String> getCurrentUId() async =>
       await remoteDataSource.getCurrentUId();
 

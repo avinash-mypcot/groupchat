@@ -7,7 +7,7 @@ import 'package:group_chat/features/presentation/cubit/user/user_cubit.dart';
 import 'package:group_chat/features/presentation/pages/login_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'core/services/network/bloc/network_bloc.dart';
-import 'core/services/notification/notification_service.dart';
+import 'core/services/notification/push_notification_service.dart';
 import 'features/presentation/cubit/auth/auth_cubit.dart';
 import 'features/presentation/cubit/credential/credential_cubit.dart';
 import 'features/presentation/cubit/group/group_cubit.dart';
@@ -48,6 +48,7 @@ void main() async {
   );
 
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
   // await Hive.initFlutter();
   // Hive.registerAdapter(TextMessageModelAdapter());
   // await Hive.openBox<TextMessageModel>('messages');
@@ -57,6 +58,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    
     return MultiBlocProvider(
         providers: [
           BlocProvider<NetworkBloc>(
