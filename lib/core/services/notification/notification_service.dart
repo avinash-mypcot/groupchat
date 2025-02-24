@@ -110,6 +110,18 @@ class FirebaseCloudMessaging {
             channel.name,
             icon: '@mipmap/ic_launcher',
             channelDescription: channel.description,
+            importance: Importance.max,
+            priority: Priority.high,
+            ticker: 'ticker',
+            actions: <AndroidNotificationAction>[
+              AndroidNotificationAction(
+                'reply_action',
+                'Reply',
+                inputs: <AndroidNotificationActionInput>[
+                  AndroidNotificationActionInput(label: 'Type your reply...')
+                ],
+              ),
+            ],
             // styleInformation: imageUrl != null
             //     ? BigPictureStyleInformation(
             //         FilePathAndroidBitmap(bigPicturePath),
@@ -130,7 +142,6 @@ class FirebaseCloudMessaging {
     // Parse the payload to get the data
     handleRouteFromMessage({"type": payload.payload});
   }
-
   Future<void> setupFlutterNotifications() async {
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
@@ -175,8 +186,10 @@ class FirebaseCloudMessaging {
       iOS: initializationSettingsIOS,
     );
 
-    await flutterLocalNotificationsPlugin?.initialize(initializationSettings,
-        onDidReceiveNotificationResponse: onReceiveNotificationResponse);
+    await flutterLocalNotificationsPlugin?.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: onReceiveNotificationResponse,
+    );
 
     channel = const AndroidNotificationChannel(
       'high_importance_channel', // id

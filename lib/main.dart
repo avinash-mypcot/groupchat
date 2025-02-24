@@ -1,14 +1,13 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/adapters.dart';
 import 'package:group_chat/core/constants/app_const.dart';
 import 'package:group_chat/features/presentation/cubit/chat/chat_cubit.dart';
 import 'package:group_chat/features/presentation/cubit/user/user_cubit.dart';
 import 'package:group_chat/features/presentation/pages/login_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'core/services/hive/hive_model.dart';
 import 'core/services/network/bloc/network_bloc.dart';
+import 'core/services/notification/notification_service.dart';
 import 'features/presentation/cubit/auth/auth_cubit.dart';
 import 'features/presentation/cubit/credential/credential_cubit.dart';
 import 'features/presentation/cubit/group/group_cubit.dart';
@@ -21,7 +20,7 @@ import 'injection_container.dart';
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // serviceLocator<FirebaseCloudMessaging>().showFlutterNotification(message);
+  // FirebaseCloudMessaging().showFlutterNotification(message);
 }
 
 void main() async {
@@ -49,9 +48,9 @@ void main() async {
   );
 
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  await Hive.initFlutter();
-  Hive.registerAdapter(TextMessageModelAdapter());
-  await Hive.openBox<TextMessageModel>('messages');
+  // await Hive.initFlutter();
+  // Hive.registerAdapter(TextMessageModelAdapter());
+  // await Hive.openBox<TextMessageModel>('messages');
   runApp(MyApp());
 }
 

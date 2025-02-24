@@ -31,8 +31,8 @@ import 'features/presentation/cubit/credential/credential_cubit.dart';
 final serviceLocator = GetIt.instance;
 
 Future<void> init() async {
-  serviceLocator
-      .registerFactory<FirebaseCloudMessaging>(() => FirebaseCloudMessaging());
+  serviceLocator.registerLazySingleton<FirebaseCloudMessaging>(
+      () => FirebaseCloudMessaging());
   await serviceLocator<FirebaseCloudMessaging>().getFirebaseNotification();
   await serviceLocator<FirebaseCloudMessaging>().setupFlutterNotifications();
   serviceLocator.registerFactory(

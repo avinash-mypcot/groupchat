@@ -29,7 +29,7 @@ class NetworkBloc extends Bloc<NetworkEvent, NetworkState> {
     NetworkService.observeNetwork().listen((isConnected) {
       add(NetworkNotify(isConnected: isConnected));
       if (isConnected) {
-        _syncLocalMessages();
+        // _syncLocalMessages();
       }
     });
   }
@@ -39,19 +39,19 @@ class NetworkBloc extends Bloc<NetworkEvent, NetworkState> {
   }
 }
 
-Future<void> _syncLocalMessages() async {
-  log("IN SYNC");
-  var keys = await Hive.box<TextMessageModel>('messages').keys; // Get all stored keys
-  for (var key in keys) {
-    var box = await Hive.box<TextMessageModel>(key);
-    for (var message in box.values) {
-      await FirebaseFirestore.instance
-          .collection("groupChatChannel")
-          .doc(key)
-          .collection("messages")
-          .doc(message.messageId)
-          .set(message.toDocument());
-    }
-    // await box.clear(); // Clear local storage after syncing
-  }
-}
+// Future<void> _syncLocalMessages() async {
+//   log("IN SYNC");
+//   var keys = await Hive.box<TextMessageModel>('messages').keys; // Get all stored keys
+//   for (var key in keys) {
+//     var box = await Hive.box<TextMessageModel>(key);
+//     for (var message in box.values) {
+//       await FirebaseFirestore.instance
+//           .collection("groupChatChannel")
+//           .doc(key)
+//           .collection("messages")
+//           .doc(message.messageId)
+//           .set(message.toDocument());
+//     }
+//     // await box.clear(); // Clear local storage after syncing
+//   }
+// }
