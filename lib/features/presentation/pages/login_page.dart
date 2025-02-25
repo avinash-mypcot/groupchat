@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:group_chat/features/presentation/cubit/auth/auth_cubit.dart';
@@ -5,6 +8,8 @@ import 'package:group_chat/features/presentation/cubit/credential/credential_cub
 import 'package:group_chat/features/presentation/widgets/common.dart';
 import 'package:group_chat/features/presentation/widgets/theme/style.dart';
 import '../../../core/routes/page_const.dart';
+import '../../data/models/user_entity.dart';
+import '../cubit/user/user_cubit.dart';
 import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -171,7 +176,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _submitLogin() {
+  void _submitLogin() async {
     if (_emailController.text.isEmpty) {
       toast('Enter your email');
       return;
@@ -184,5 +189,8 @@ class _LoginPageState extends State<LoginPage> {
       email: _emailController.text,
       password: _passwordController.text,
     );
+    final fcm = await FirebaseMessaging.instance.getToken();
+    log("MY FCM $fcm");
+    BlocProvider.of<UserCubit>(context).getUpdateUser(user: fcm!);
   }
 }

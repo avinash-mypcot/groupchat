@@ -49,8 +49,8 @@ class PushNotificationService {
     final Map<String, dynamic> message = {
       'message': {
         'token': deviceToken,
-        'notification': {'title': 'Hi', 'body': 'Hlo'},
-        'data': {'tripID': tripID}
+        // 'notification': {'title': 'New Message', 'body': tripID},
+        'data': {'tripID': tripID, 'title': 'New Message', 'body': tripID}
       }
     };
     final http.Response response = await http.post(

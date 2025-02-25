@@ -7,6 +7,7 @@ import 'package:group_chat/features/data/repositories/get_create_current_user_re
 import 'package:group_chat/features/data/repositories/google_sign_in_repository.dart';
 import 'package:group_chat/features/data/repositories/sign_in_repository.dart';
 import 'package:group_chat/features/data/repositories/sign_up_repository.dart';
+
 part 'credential_state.dart';
 
 class CredentialCubit extends Cubit<CredentialState> {
@@ -42,6 +43,7 @@ class CredentialCubit extends Cubit<CredentialState> {
     try {
       await signInRepository.call(UserEntity(email: email, password: password));
       emit(CredentialSuccess());
+      
     } on SocketException catch (_) {
       emit(CredentialFailure());
     } catch (_) {

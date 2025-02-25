@@ -53,6 +53,11 @@ class _SingleChatPageState extends State<SingleChatPage> {
     super.dispose();
   }
 
+  setFcm(String id) async {
+    final fcmToken = await FirebaseRemoteDataSource.getFcmTokenByUid(id);
+    fcm.add(fcmToken!);
+  }
+
   DateTime setExpirationTime(int duration, String timeUnit) {
     int milliseconds = 0;
 
@@ -275,10 +280,6 @@ class _SingleChatPageState extends State<SingleChatPage> {
   }
 
   Widget _sendMessageTextField() {
-    fcm.isNotEmpty
-        ? PushNotificationService.sendNotificationToSelectedDriver(
-            fcm[0], context, '12')
-        : null;
     return Container(
       margin: EdgeInsets.only(bottom: 10, left: 4, right: 4),
       child: Row(
@@ -356,6 +357,10 @@ class _SingleChatPageState extends State<SingleChatPage> {
             onTap: () {
               if (_messageController.text.isEmpty) {
               } else {
+                fcm.isNotEmpty
+                    ? PushNotificationService.sendNotificationToSelectedDriver(
+                        fcm[0], context, '${_messageController.text}')
+                    : null;
                 print(_messageController.text);
                 BlocProvider.of<ChatCubit>(context).sendTextMessage(
                     textMessageEntity: TextMessageModel(
@@ -433,9 +438,8 @@ class _SingleChatPageState extends State<SingleChatPage> {
               text: message.content,
             );
           } else {
+            setFcm(message.senderId!);
             log("FCM FCM");
-            // FirebaseRemoteDataSource(ServiceLocator<>()).getFcmTokenByUid(message.senderId!);
-            fcm.add(message.senderId!);
             return _messageLayout(
               color: Colors.white,
               name: "${message.senderName}",

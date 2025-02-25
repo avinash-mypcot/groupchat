@@ -246,14 +246,14 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _updateProfile() {
-    BlocProvider.of<UserCubit>(context).getUpdateUser(
-      user: UserEntity(
-        uid: widget.uid,
-        name: _nameController!.text,
-        status: _statusController!.text,
-        profileUrl: _profileUrl!,
-      ),
-    );
+    // BlocProvider.of<UserCubit>(context).getUpdateUser(
+    //   user: UserEntity(
+    //     uid: widget.uid,
+    //     name: _nameController!.text,
+    //     status: _statusController!.text,
+    //     profileUrl: _profileUrl!,
+    //   ),
+    // );
     toast("Profile Updated");
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
@@ -24,7 +25,8 @@ class UserCubit extends Cubit<UserState> {
     });
   }
 
-  Future<void> getUpdateUser({required UserEntity user}) async {
+  Future<void> getUpdateUser({required String user}) async {
+    log("IN CUBIT");
     try {
       await getUpdateUserRepository.call(user);
     } on SocketException catch (_) {

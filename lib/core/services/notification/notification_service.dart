@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -92,47 +93,74 @@ class FirebaseCloudMessaging {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
 
-    if (notification != null && android != null) {
-      // Download the image
-      final String? imageUrl = message.data['image'];
-      final String bigPicturePath = imageUrl != null
-          ? await downloadAndSaveFile(imageUrl, 'big_picture')
-          : '';
-      log(' INTILIZATION :::${flutterLocalNotificationsPlugin == null}');
-      flutterLocalNotificationsPlugin?.show(
-        // 1,
-        DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            channel.id,
-            channel.name,
-            icon: '@mipmap/ic_launcher',
-            channelDescription: channel.description,
-            importance: Importance.max,
-            priority: Priority.high,
-            ticker: 'ticker',
-            actions: <AndroidNotificationAction>[
-              AndroidNotificationAction(
-                'reply_action',
-                'Reply',
-                inputs: <AndroidNotificationActionInput>[
-                  AndroidNotificationActionInput(label: 'Type your reply...')
-                ],
-              ),
-            ],
-            // styleInformation: imageUrl != null
-            //     ? BigPictureStyleInformation(
-            //         FilePathAndroidBitmap(bigPicturePath),
-            //         largeIcon: FilePathAndroidBitmap(bigPicturePath),
-            //       )
-            //     : null,
-          ),
-          iOS: const DarwinNotificationDetails(),
+    // if (notification != null && android != null) {
+    // Download the image
+    final String? imageUrl = message.data['image'];
+    final String bigPicturePath = imageUrl != null
+        ? await downloadAndSaveFile(imageUrl, 'big_picture')
+        : '';
+    log(' INTILIZATION :::${flutterLocalNotificationsPlugin == null}');
+    flutterLocalNotificationsPlugin?.show(
+      // 1,
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      message.data['title'].toString(),
+      message.data['body'].toString(),
+      // notification.title,
+      // notification.body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          channel.id,
+          channel.name,
+          icon: '@mipmap/ic_launcher',
+          channelDescription: channel.description,
+          importance: Importance.max,
+          priority: Priority.high,
+          ticker: 'ticker',
+          actions: <AndroidNotificationAction>[
+            AndroidNotificationAction(
+              'reply_action',
+              'Reply',
+              inputs: <AndroidNotificationActionInput>[
+                AndroidNotificationActionInput(label: 'Type your reply...')
+              ],
+            ),
+          ],
+          // styleInformation: imageUrl != null
+          //     ? BigPictureStyleInformation(
+          //         FilePathAndroidBitmap(bigPicturePath),
+          //         largeIcon: FilePathAndroidBitmap(bigPicturePath),
+          //       )
+          //     : null,
         ),
-        payload: message.data['type'],
+        iOS: const DarwinNotificationDetails(),
+      ),
+      payload: message.data['type'],
+    );
+    // }
+  }
+
+  void handleReplyMessage(String? reply) {
+    if (reply != null && reply.isNotEmpty) {
+      log('User replied: $reply');
+      // Send reply to your backend or process it as needed
+      sendReplyToServer(reply);
+    }
+  }
+
+  Future<void> sendReplyToServer(String reply) async {
+    try {
+      final response = await http.post(
+        Uri.parse('YOUR_BACKEND_API_ENDPOINT'),
+        headers: {'Content-Type': 'application/json'},
+        // body: jsonEncode({'reply': reply}),
       );
+      if (response.statusCode == 200) {
+        log('Reply sent successfully');
+      } else {
+        log('Failed to send reply: ${response.body}');
+      }
+    } catch (e) {
+      log('Error sending reply: $e');
     }
   }
 
@@ -140,8 +168,15 @@ class FirebaseCloudMessaging {
   void onReceiveNotificationResponse(NotificationResponse payload) async {
     //Foreground redirection code
     // Parse the payload to get the data
+    log('User Reply: ');
+    if (payload.actionId == 'reply_action') {
+      String? userReply = payload.input;
+      log('User Reply: $userReply');
+      handleReplyMessage(userReply);
+    }
     handleRouteFromMessage({"type": payload.payload});
   }
+
   Future<void> setupFlutterNotifications() async {
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(

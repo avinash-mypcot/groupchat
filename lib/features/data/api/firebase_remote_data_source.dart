@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:group_chat/features/data/models/engage_user_entity.dart';
 import 'package:group_chat/features/data/models/group_entity.dart';
@@ -21,40 +22,39 @@ class FirebaseRemoteDataSource {
   String _verificationId = "";
 
   FirebaseRemoteDataSource(this.fireStore, this.auth, this.googleSignIn);
- Future<String?> getFcmTokenByUid(String uid) async {
-  try {
-    final userDoc = await fireStore.collection("users").doc(uid).get();
+  static Future<String?> getFcmTokenByUid(String uid) async {
+    try {
+      final userDoc =
+          await FirebaseFirestore.instance.collection("users").doc(uid).get();
 
-    if (userDoc.exists && userDoc.data() != null) {
-      return userDoc.data()?["fcmToken"];
-    } else {
-      print("User not found");
+      if (userDoc.exists && userDoc.data() != null) {
+        return userDoc.data()?["fcmToken"];
+      } else {
+        print("User not found");
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching FCM token: $e");
       return null;
     }
-  } catch (e) {
-    print("Error fetching FCM token: $e");
-    return null;
   }
-}
-
 
   Future<void> getCreateCurrentUser(UserEntity user) async {
     final userCollection = fireStore.collection("users");
     final uid = await getCurrentUId();
     userCollection.doc(uid).get().then((userDoc) {
       final newUser = UserModel(
-        name: user.name,
-        uid: uid,
-        phoneNumber: user.phoneNumber,
-        email: user.email,
-        profileUrl: user.profileUrl,
-        isOnline: user.isOnline,
-        status: user.status,
-        dob: user.dob,
-        gender: user.gender,
-        fcmToken: user.fcmToken
-        
-      ).toDocument();
+              name: user.name,
+              uid: uid,
+              phoneNumber: user.phoneNumber,
+              email: user.email,
+              profileUrl: user.profileUrl,
+              isOnline: user.isOnline,
+              status: user.status,
+              dob: user.dob,
+              gender: user.gender,
+              fcmToken: user.fcmToken)
+          .toDocument();
       if (!userDoc.exists) {
         userCollection.doc(uid).set(newUser);
         return;
@@ -401,6 +401,15 @@ class FirebaseRemoteDataSource {
   Future<void> signIn(UserEntity user) async {
     await auth.signInWithEmailAndPassword(
         email: user.email, password: user.password);
+    log("IN REPOPO UPDAT");
+
+    final id = await getCurrentUId();
+    log("IN FCM UPDAT");
+    final userCollection = fireStore.collection("users");
+    final fcm = await FirebaseMessaging.instance.getToken();
+    await userCollection.doc(id).update({
+      "fcmToken": fcm,
+    });
   }
 
   Future<void> signUp(UserEntity user) async {
@@ -408,19 +417,22 @@ class FirebaseRemoteDataSource {
         email: user.email, password: user.password);
   }
 
-  Future<void> getUpdateUser(UserEntity user) async {
-    Map<String, dynamic> userInformation = Map();
-    print(user.name);
-    final userCollection = fireStore.collection("users");
+  Future<void> updateFcmToken(String fcmToken) async {}
 
-    if (user.profileUrl != "") userInformation['profileUrl'] = user.profileUrl;
-    if (user.status != "") userInformation['status'] = user.status;
-    if (user.phoneNumber != "")
-      userInformation["phoneNumber"] = user.phoneNumber;
-    if (user.name != "") userInformation["name"] = user.name;
+  // Future<void> getUpdateUser(String fcm) async {
+  //   final id = await getCurrentUId();
+  //   Map<String, dynamic> userInformation = Map();
+  //   print(user.name);
+  //   final userCollection = fireStore.collection("users");
 
-    userCollection.doc(user.uid).update(userInformation);
-  }
+  //   if (user.profileUrl != "") userInformation['profileUrl'] = user.profileUrl;
+  //   if (user.status != "") userInformation['status'] = user.status;
+  //   if (user.phoneNumber != "")
+  //     userInformation["phoneNumber"] = user.phoneNumber;
+  //   if (user.name != "") userInformation["name"] = user.name;
+
+  //   userCollection.doc(id).update(userInformation);
+  // }
 
   Future<void> getCreateGroup(GroupEntity groupEntity) async {
     if (groupEntity.limitUsers == null) {

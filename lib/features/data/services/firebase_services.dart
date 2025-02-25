@@ -12,8 +12,8 @@ class FirebaseServices {
 
   Future<void> getCreateCurrentUser(UserEntity user) async =>
       await remoteDataSource.getCreateCurrentUser(user);
-  Future<void> getFcmTokenByUid(String user) async =>
-      await remoteDataSource.getFcmTokenByUid(user);
+  // Future<void> getFcmTokenByUid(String user) async =>
+  //     await remoteDataSource.getFcmTokenByUid(user);
   Future<String> getCurrentUId() async =>
       await remoteDataSource.getCurrentUId();
 
@@ -74,8 +74,8 @@ class FirebaseServices {
 
   Future<void> signUp(UserEntity user) async => remoteDataSource.signUp(user);
 
-  Future<void> getUpdateUser(UserEntity user) async =>
-      remoteDataSource.getUpdateUser(user);
+  Future<void> getUpdateUser(String user) async =>
+      remoteDataSource.updateFcmToken(user);
 
   Future<void> getCreateGroup(GroupEntity groupEntity) async =>
       remoteDataSource.getCreateGroup(groupEntity);
