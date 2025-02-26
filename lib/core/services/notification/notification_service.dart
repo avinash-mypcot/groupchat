@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
@@ -85,11 +86,62 @@ class FirebaseCloudMessaging {
     return filePath;
   }
 
+  static Future<void> updateMessageTypes(
+    String channelId,
+    String newType,
+    String? senderId,
+  ) async {
+    log("IN UPDATE");
+
+    try {
+      final messagesRef = FirebaseFirestore.instance
+          .collection("groupChatChannel")
+          .doc(channelId)
+          .collection("messages");
+
+      final querySnapshot = await messagesRef.get();
+
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+        log("FOR ${data["type"] != "seen"} ");
+        if (data['senderId'] == senderId && data["type"] != "seen") {
+          log("IN IF ");
+          await doc.reference.update({"type": newType});
+        }
+      }
+//       final messagesRef = FirebaseFirestore.instance
+//           .collection("groupChatChannel")
+//           .doc(channelId)
+//           .collection("messages");
+
+// // Query only messages that are NOT sent by the current user
+//       final querySnapshot =
+//           await messagesRef.where("senderId", isNotEqualTo: senderId).get();
+
+//       for (var doc in querySnapshot.docs) {
+//         final data = doc.data();
+
+//         // Check if the message type is NOT "SEEN" before updating
+//         if (data["type"] != "seen") {
+//           await doc.reference.update({"type": newType});
+//           log("$newType , $channelId");
+//         }
+//         log("$newType , $channelId");
+//         log("${data["type"]} Message types updated successfully for messages not sent by $senderId.");
+//       }
+    } catch (e) {
+      log("Error updating message types: $e");
+    }
+  }
+
   //Display Notifications
   void showFlutterNotification(RemoteMessage message) async {
     if (flutterLocalNotificationsPlugin == null) {
       await setupFlutterNotifications();
     }
+    updateMessageTypes(message.data['channelId'].toString(), "delivered",
+        message.data['senderId'].toString());
+
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
 
@@ -118,10 +170,14 @@ class FirebaseCloudMessaging {
           ticker: 'ticker',
           actions: <AndroidNotificationAction>[
             AndroidNotificationAction(
-              'reply_action',
+              'ACTION_ID',
               'Reply',
+              allowGeneratedReplies: true,
+              // showsUserInterface: true,
               inputs: <AndroidNotificationActionInput>[
-                AndroidNotificationActionInput(label: 'Type your reply...')
+                AndroidNotificationActionInput(
+                  label: 'Type your reply...',
+                ),
               ],
             ),
           ],
@@ -152,7 +208,7 @@ class FirebaseCloudMessaging {
       final response = await http.post(
         Uri.parse('YOUR_BACKEND_API_ENDPOINT'),
         headers: {'Content-Type': 'application/json'},
-        // body: jsonEncode({'reply': reply}),
+        body: jsonEncode({'reply': reply}),
       );
       if (response.statusCode == 200) {
         log('Reply sent successfully');
@@ -174,7 +230,7 @@ class FirebaseCloudMessaging {
       log('User Reply: $userReply');
       handleReplyMessage(userReply);
     }
-    handleRouteFromMessage({"type": payload.payload});
+    // handleRouteFromMessage({"type": payload.payload});
   }
 
   Future<void> setupFlutterNotifications() async {
@@ -221,10 +277,16 @@ class FirebaseCloudMessaging {
       iOS: initializationSettingsIOS,
     );
 
-    await flutterLocalNotificationsPlugin?.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse: onReceiveNotificationResponse,
-    );
+    await flutterLocalNotificationsPlugin?.initialize(initializationSettings,
+        onDidReceiveNotificationResponse: onReceiveNotificationResponse
+        // (NotificationResponse response) {
+        //   log("IN onDidReceiveNotificationResponse");
+        //   if (response.actionId == 'ACTION_ID') {
+        //     print('Action button clicked!');
+        //     // Perform your desired action
+        //   }
+        // },
+        );
 
     channel = const AndroidNotificationChannel(
       'high_importance_channel', // id

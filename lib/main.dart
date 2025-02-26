@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:group_chat/core/constants/app_const.dart';
 import 'package:group_chat/features/presentation/cubit/chat/chat_cubit.dart';
@@ -10,7 +11,6 @@ import 'package:group_chat/features/presentation/pages/login_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'core/services/network/bloc/network_bloc.dart';
 import 'core/services/notification/notification_service.dart';
-import 'core/services/notification/push_notification_service.dart';
 import 'features/presentation/cubit/auth/auth_cubit.dart';
 import 'features/presentation/cubit/credential/credential_cubit.dart';
 import 'features/presentation/cubit/group/group_cubit.dart';
@@ -52,7 +52,16 @@ void main() async {
   );
 
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  const MethodChannel platform =
+      MethodChannel('com.example.groupchat/notifications');
 
+  platform.setMethodCallHandler((MethodCall call) async {
+    if (call.method == "onNotificationReply") {
+      String reply = call.arguments;
+      print("User replied: $reply");
+      // Handle reply in Flutter (e.g., send to server, update UI, etc.)
+    }
+  });
   // await Hive.initFlutter();
   // Hive.registerAdapter(TextMessageModelAdapter());
   // await Hive.openBox<TextMessageModel>('messages');

@@ -180,6 +180,33 @@ class FirebaseRemoteDataSource {
     return Future.value("");
   }
 
+  static Future<void> updateMessageTypes(
+    String channelId,
+    String newType,
+    String? senderId,
+  ) async {
+    try {
+      final messagesRef = FirebaseFirestore.instance
+          .collection("groupChatChannel")
+          .doc(channelId)
+          .collection("messages");
+
+      final querySnapshot = await messagesRef.get();
+
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+
+        if (data['senderId'] != senderId) {
+          await doc.reference.update({"type": newType});
+        }
+      }
+
+      log("Message types updated successfully for messages not sent by $senderId.");
+    } catch (e) {
+      log("Error updating message types: $e");
+    }
+  }
+
   Future<void> sendTextMessage(
       TextMessageModel textMessageEntity, String channelId) async {
     final messagesRef = fireStore

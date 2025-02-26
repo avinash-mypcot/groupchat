@@ -28,6 +28,7 @@ class TextMessageModel {
 
   @HiveField(7)
   String? type;
+  
 
   @HiveField(8)
   DateTime? expiredAt; // ✅ Convert Timestamp to DateTime

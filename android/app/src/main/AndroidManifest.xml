@@ -46,12 +46,29 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="high_importance_channel" />
+
+        <!-- <receiver
+            android:name=".NotificationReceiver"
+            android:exported="true"> 
+            <intent-filter>
+                <action android:name="com.example.REPLY_ACTION"/>
+            </intent-filter>
+        </receiver> -->
+
         <!-- <receiver 
             android:name="com.dexterous.flutterlocalnotifications.notifications.receivers.ActionReceiver"
             android:exported="true" />
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.notifications.receivers.DismissedReceiver"
             android:exported="true" /> -->
+<!-- <receiver
+    android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
+    android:exported="true">
+    <intent-filter>
+        <action android:name="ACTION_ID" />
+    </intent-filter>
+</receiver> -->
+<receiver android:name=".MyReplyReceiver" android:exported="false" />
 
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">

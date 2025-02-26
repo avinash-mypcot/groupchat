@@ -5,6 +5,7 @@ import 'package:bubble/bubble.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:group_chat/features/data/models/group_entity.dart';
 import 'package:group_chat/features/data/models/single_chat_entity.dart';
@@ -44,6 +45,13 @@ class _SingleChatPageState extends State<SingleChatPage> {
     BlocProvider.of<ChatCubit>(context)
         .getMessages(channelId: widget.singleChatEntity.groupId);
     super.initState();
+    seenMessages();
+  }
+
+  void seenMessages() async {
+    log("IN seenMessages");
+    await FirebaseRemoteDataSource.updateMessageTypes(
+        widget.singleChatEntity.groupId, 'seen', widget.singleChatEntity.uid);
   }
 
   @override
@@ -263,6 +271,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
       body: BlocBuilder<ChatCubit, ChatState>(
         builder: (index, chatState) {
           if (chatState is ChatLoaded) {
+            seenMessages();
             return Column(
               children: [
                 _messagesListWidget(chatState),
@@ -359,7 +368,12 @@ class _SingleChatPageState extends State<SingleChatPage> {
               } else {
                 fcm.isNotEmpty
                     ? PushNotificationService.sendNotificationToSelectedDriver(
-                        fcm[0], context, '${_messageController.text}')
+                        fcm[0],
+                        context,
+                        '${_messageController.text}',
+                        channelId: widget.singleChatEntity.groupId,
+                        senderId: widget.singleChatEntity.uid,
+                      )
                     : null;
                 print(_messageController.text);
                 BlocProvider.of<ChatCubit>(context).sendTextMessage(
@@ -372,7 +386,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
                         senderId: widget.singleChatEntity.uid,
                         content: _messageController.text,
                         senderName: widget.singleChatEntity.username,
-                        type: "TEXT",
+                        type: "sent",
                         receiverName: '',
                         recipientId: ''),
                     channelId: widget.singleChatEntity.groupId);
@@ -427,16 +441,16 @@ class _SingleChatPageState extends State<SingleChatPage> {
 
           if (message.senderId == widget.singleChatEntity.uid) {
             return _messageLayout(
-              name: "Me",
-              alignName: TextAlign.end,
-              color: primaryColor.withOpacity(0.5),
-              time: formattedTime,
-              align: TextAlign.left,
-              boxAlign: CrossAxisAlignment.start,
-              crossAlign: CrossAxisAlignment.end,
-              nip: BubbleNip.rightTop,
-              text: message.content,
-            );
+                name: "Me",
+                alignName: TextAlign.end,
+                color: primaryColor.withOpacity(0.5),
+                time: formattedTime,
+                align: TextAlign.left,
+                boxAlign: CrossAxisAlignment.start,
+                crossAlign: CrossAxisAlignment.end,
+                nip: BubbleNip.rightTop,
+                text: message.content,
+                status: message.type);
           } else {
             setFcm(message.senderId!);
             log("FCM FCM");
@@ -457,17 +471,30 @@ class _SingleChatPageState extends State<SingleChatPage> {
     );
   }
 
-  Widget _messageLayout({
-    text,
-    time,
-    color,
-    align,
-    boxAlign,
-    nip,
-    crossAlign,
-    String? name,
-    alignName,
-  }) {
+  Widget messageStatusIcon(String status) {
+    switch (status) {
+      case "sent":
+        return Icon(Icons.check, color: Colors.grey, size: 16); // Sent
+      case "delivered":
+        return Icon(Icons.done_all, color: Colors.grey, size: 16); // Delivered
+      case "seen":
+        return Icon(Icons.done_all, color: Colors.blue, size: 16); // Read
+      default:
+        return Icon(Icons.access_time, color: Colors.grey, size: 16); // Pending
+    }
+  }
+
+  Widget _messageLayout(
+      {text,
+      time,
+      color,
+      align,
+      boxAlign,
+      nip,
+      crossAlign,
+      String? name,
+      alignName,
+      String? status}) {
     return Column(
       crossAxisAlignment: crossAlign,
       children: [
@@ -495,15 +522,26 @@ class _SingleChatPageState extends State<SingleChatPage> {
                     textAlign: align,
                     style: TextStyle(fontSize: 16),
                   ),
-                  Text(
-                    time,
-                    textAlign: align,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.black.withOpacity(
-                        .4,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        time,
+                        textAlign: align,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.black.withOpacity(
+                            .4,
+                          ),
+                        ),
                       ),
-                    ),
+                      SizedBox(
+                        width: 5.w,
+                      ),
+                      crossAlign == CrossAxisAlignment.end
+                          ? messageStatusIcon(status!)
+                          : SizedBox()
+                    ],
                   )
                 ],
               ),
