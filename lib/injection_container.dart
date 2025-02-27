@@ -34,7 +34,7 @@ Future<void> init() async {
   serviceLocator.registerLazySingleton<FirebaseCloudMessaging>(
       () => FirebaseCloudMessaging());
   await serviceLocator<FirebaseCloudMessaging>().getFirebaseNotification();
-  await serviceLocator<FirebaseCloudMessaging>().setupFlutterNotifications();
+  await serviceLocator<FirebaseCloudMessaging>().setupAwesomeNotifications();
   serviceLocator.registerFactory(
     () => NetworkBloc(),
   );

@@ -24,7 +24,7 @@ import 'injection_container.dart';
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   log("IN firebaseMessagingBackgroundHandler");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  FirebaseCloudMessaging().showFlutterNotification(message);
+  FirebaseCloudMessaging().showAwesomeNotification(message);
 }
 
 void main() async {

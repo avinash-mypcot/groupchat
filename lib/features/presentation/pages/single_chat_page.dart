@@ -33,9 +33,11 @@ class _SingleChatPageState extends State<SingleChatPage> {
   String _timeUnit = 'Minutes';
   String messageContent = "";
   bool isEnableDis = false;
-  TextEditingController _messageController = TextEditingController();
-  ScrollController _scrollController = ScrollController();
+  final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   List<String> fcm = [];
+  String? senderId;
+  String? senderName;
 
   @override
   void initState() {
@@ -252,7 +254,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
       appBar: AppBar(
         foregroundColor: textIconColor,
         title: Text(
-          "${widget.singleChatEntity.groupName}",
+          widget.singleChatEntity.groupName,
           style: TextStyle(color: textIconColor),
         ),
         backgroundColor: primaryColor,
@@ -368,12 +370,11 @@ class _SingleChatPageState extends State<SingleChatPage> {
               } else {
                 fcm.isNotEmpty
                     ? PushNotificationService.sendNotificationToSelectedDriver(
-                        fcm[0],
-                        context,
-                        '${_messageController.text}',
+                        fcm[0],  _messageController.text,
                         channelId: widget.singleChatEntity.groupId,
                         senderId: widget.singleChatEntity.uid,
-                      )
+                        reciverId: senderId ?? '',
+                        reciverName: senderName ?? '')
                     : null;
                 print(_messageController.text);
                 BlocProvider.of<ChatCubit>(context).sendTextMessage(
@@ -453,6 +454,8 @@ class _SingleChatPageState extends State<SingleChatPage> {
                 status: message.type);
           } else {
             setFcm(message.senderId!);
+            senderId = message.senderId!;
+            senderName = message.senderName!;
             log("FCM FCM");
             return _messageLayout(
               color: Colors.white,

@@ -1,36 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hive/hive.dart';
+// import 'package:hive/hive.dart';
 
-part 'hive_model.g.dart';
+// part 'hive_model.g.dart';
 
-@HiveType(typeId: 0)
+// @HiveType(typeId: 0)
 class TextMessageModel {
-  @HiveField(0)
+  // @HiveField(0)
   String? messageId;
 
-  @HiveField(1)
+  // @HiveField(1)
   String? content;
 
-  @HiveField(2)
+  // @HiveField(2)
   String? senderId;
 
-  @HiveField(3)
+  // @HiveField(3)
   String? receiverName;
 
-  @HiveField(4)
+  // @HiveField(4)
   String? recipientId;
 
-  @HiveField(5)
+  // @HiveField(5)
   String? senderName;
 
-  @HiveField(6)
+  // @HiveField(6)
   DateTime? time; // ✅ Use DateTime instead of Timestamp
 
-  @HiveField(7)
+  // @HiveField(7)
   String? type;
-  
 
-  @HiveField(8)
+  // @HiveField(8)
   DateTime? expiredAt; // ✅ Convert Timestamp to DateTime
 
   TextMessageModel({
@@ -55,9 +54,11 @@ class TextMessageModel {
       receiverName: data['receiverName'],
       recipientId: data['recipientId'],
       senderName: data['senderName'],
-      time: (data['time'] as Timestamp).toDate(), // ✅ Convert Timestamp to DateTime
+      time: (data['time'] as Timestamp)
+          .toDate(), // ✅ Convert Timestamp to DateTime
       type: data['type'],
-      expiredAt: (data['expiredAt'] as Timestamp).toDate(), // ✅ Convert Timestamp to DateTime
+      expiredAt: (data['expiredAt'] as Timestamp)
+          .toDate(), // ✅ Convert Timestamp to DateTime
     );
   }
 
@@ -70,9 +71,13 @@ class TextMessageModel {
       "receiverName": receiverName,
       "recipientId": recipientId,
       "senderName": senderName,
-      "time": time != null ? Timestamp.fromDate(time!) : null, // ✅ Convert DateTime to Timestamp
+      "time": time != null
+          ? Timestamp.fromDate(time!)
+          : null, // ✅ Convert DateTime to Timestamp
       "type": type,
-      "expiredAt": expiredAt != null ? Timestamp.fromDate(expiredAt!) : null, // ✅ Convert DateTime to Timestamp
+      "expiredAt": expiredAt != null
+          ? Timestamp.fromDate(expiredAt!)
+          : null, // ✅ Convert DateTime to Timestamp
     };
   }
 }

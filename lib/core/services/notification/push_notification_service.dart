@@ -41,8 +41,8 @@ class PushNotificationService {
   }
 
   static sendNotificationToSelectedDriver(
-      String deviceToken, BuildContext context, String tripID,
-      {required String channelId, required String senderId}) async {
+      String deviceToken, String tripID,
+      {required String channelId, required String senderId,required String reciverId,required String reciverName}) async {
     final String serviceKey = await getAccessToken();
     String endpointFirebaseCloudMessaging =
         'https://fcm.googleapis.com/v1/projects/groupchat-436c7/messages:send';
@@ -57,6 +57,8 @@ class PushNotificationService {
           'body': tripID,
           'senderId': senderId,
           'channelId': channelId,
+          'reciverId':reciverId,
+          'reciverName':reciverName,
           "action": "reply"
         }
       }
