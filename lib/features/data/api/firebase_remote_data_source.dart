@@ -83,24 +83,23 @@ class FirebaseRemoteDataSource {
   }
 
   Future<void> verifyPhoneNumber(String phoneNumber) async {
-    final PhoneVerificationCompleted phoneVerificationCompleted =
-        (AuthCredential authCredential) {
+    phoneVerificationCompleted(AuthCredential authCredential) {
       print("phone is verified : token ${authCredential.token}");
-    };
-    final PhoneVerificationFailed phoneVerificationFailed =
-        (FirebaseAuthException authCredential) {
+    }
+
+    phoneVerificationFailed(FirebaseAuthException authCredential) {
       print("phone failed ${authCredential.message},${authCredential.code}");
-    };
-    final PhoneCodeAutoRetrievalTimeout phoneCodeAutoRetrievalTimeout =
-        (String verificationId) {
-      this._verificationId = verificationId;
+    }
+
+    phoneCodeAutoRetrievalTimeout(String verificationId) {
+      _verificationId = verificationId;
       print("time out $verificationId");
-    };
-    final PhoneCodeSent phoneCodeSent =
-        (String verificationID, [int? forceResendingToken]) {
-      this._verificationId = verificationID;
+    }
+
+    phoneCodeSent(String verificationID, [int? forceResendingToken]) {
+      _verificationId = verificationID;
       print("sendPhoneCode $verificationID");
-    };
+    }
 
     auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
@@ -152,14 +151,14 @@ class FirebaseRemoteDataSource {
         return chatChannelDoc.get('channelId');
       }
 
-      final _chatChannelId = oneToOneChatChannelRef.doc().id;
+      final chatChannelId = oneToOneChatChannelRef.doc().id;
 
-      var channel = {'channelId': _chatChannelId};
+      var channel = {'channelId': chatChannelId};
       var channel1 = {
-        'channelId': _chatChannelId,
+        'channelId': chatChannelId,
       };
 
-      oneToOneChatChannelRef.doc(_chatChannelId).set(channel);
+      oneToOneChatChannelRef.doc(chatChannelId).set(channel);
 
       //currentUser
       userCollectionRef
@@ -175,7 +174,7 @@ class FirebaseRemoteDataSource {
           .doc(engageUserEntity.uid)
           .set(channel);
 
-      return _chatChannelId;
+      return chatChannelId;
     });
     return Future.value("");
   }
@@ -230,9 +229,9 @@ class FirebaseRemoteDataSource {
     final currentState = serviceLocator<NetworkBloc>().state;
     // Save to Firebase if connected
     // if (await currentState is NetworkSuccess) {
-    log("STORING LOCAL DATA");
+    log("STORING LOCAL DATA$messageId");
     try {
-      await messagesRef.doc(messageId).set(newMessage.toDocument());
+      final res=await messagesRef.doc(messageId).set(newMessage.toDocument());
     } catch (e) {
       log("STORING LOCAL DATA11$e");
     }
@@ -525,7 +524,7 @@ class FirebaseRemoteDataSource {
   }
 
   Future<void> updateGroup(GroupEntity groupEntity) async {
-    Map<String, dynamic> groupInformation = Map();
+    Map<String, dynamic> groupInformation = {};
 
     final userCollection = fireStore.collection("groups");
 

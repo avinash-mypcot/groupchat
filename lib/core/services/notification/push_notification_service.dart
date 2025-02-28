@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
@@ -40,9 +41,12 @@ class PushNotificationService {
     return credentials.accessToken.data;
   }
 
-  static sendNotificationToSelectedDriver(
-      String deviceToken, String tripID,
-      {required String channelId, required String senderId,required String reciverId,required String reciverName}) async {
+  static sendNotificationToSelectedDriver(String deviceToken, String tripID,
+      {required String channelId,
+      required String senderId,
+      required String reciverId,
+      required String reciverName}) async {
+    log("IN SENT SMS");
     final String serviceKey = await getAccessToken();
     String endpointFirebaseCloudMessaging =
         'https://fcm.googleapis.com/v1/projects/groupchat-436c7/messages:send';
@@ -57,8 +61,8 @@ class PushNotificationService {
           'body': tripID,
           'senderId': senderId,
           'channelId': channelId,
-          'reciverId':reciverId,
-          'reciverName':reciverName,
+          'reciverId': reciverId,
+          'reciverName': reciverName,
           "action": "reply"
         }
       }

@@ -303,14 +303,13 @@
 // }
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 
+import '../../../features/data/api/firebase_remote_data_source.dart';
 import '../../../features/data/models/group_entity.dart';
 import '../../../features/presentation/cubit/chat/chat_cubit.dart';
 import '../../../features/presentation/cubit/group/group_cubit.dart';
@@ -318,60 +317,104 @@ import '../../../injection_container.dart';
 import '../hive/hive_model.dart';
 import 'push_notification_service.dart';
 
-String? channelid;
-String? senderId;
-String? myId;
-String? myName;
+/// A dedicated handler for notification actions that stores
+/// notification-related data as instance variables instead of globals.
+class NotificationHandler {
+  // Singleton instance.
+  static final NotificationHandler instance = NotificationHandler._internal();
+  NotificationHandler._internal();
 
-/// Global function to handle notification actions.
-/// Must be a top-level or static method.
-Future<void> onActionReceivedMethod(ReceivedAction action) async {
-  String? userReply;
-  if (action.buttonKeyPressed == 'REPLY') {
-    userReply = action.buttonKeyInput;
-    log("ACTION RECIEV $userReply s");
-    // Forward the reply to the singleton instance.
-    // FirebaseCloudMessaging.instance.handleReplyMessage(userReply);
+  String? _channelId;
+  String? _senderId;
+  String? _myId;
+  String? _myName;
+  String? _fcmToken;
+
+  /// Update the handler with data from the incoming message.
+  void updateFromMessageData(Map<String, String> data) {
+    _channelId = data['channelId'];
+    _senderId = data['senderId'];
+    _myId = data['reciverId'];
+    _myName = data['reciverName'];
   }
-  log("ACTION channelid $channelid s");
-  serviceLocator<ChatCubit>().sendTextMessage(
-      textMessageEntity: TextMessageModel(
-          messageId: '',
-          expiredAt: DateTime(2030),
-          time: DateTime.now(),
-          senderId: myId ?? '',
-          content: userReply,
-          senderName: myName ?? "",
-          type: "sent",
-          receiverName: '',
-          recipientId: ''),
-      channelId: channelid ?? "");
-  serviceLocator<GroupCubit>().updateGroup(
-      groupEntity: GroupEntity(
-    groupId: channelid ?? '',
-    lastMessage: userReply ?? '',
-    creationTime: Timestamp.now(),
-  ));
 
-  PushNotificationService.sendNotificationToSelectedDriver(
-      'dbhLSvugQ_qVtl1AXFkNEv:APA91bFXiiuPoXZSOvYmeuBhWdIM1PMLeCUsuPq22MvjfDEPRqsFx5djnePRdKcMOKszjYmUlD7qVqqsQSG3Zn5wBonDuS-ccEWwFzisRjl3s2dsQkIG9dU',
+  /// Instance method that handles notification actions.
+  Future<void> onActionReceivedMethod(ReceivedAction action) async {
+    String? userReply;
+    // Ensure FCM token is set for the sender.
+    await _setFcm(_senderId ?? '');
+    if (action.buttonKeyPressed == 'REPLY') {
+      userReply = action.buttonKeyInput;
+      // Optionally forward the reply if needed.
+      // FirebaseCloudMessaging.instance.handleReplyMessage(userReply);
+    }
+    debugPrint("ACTION channelId: $_channelId");
+
+    // Send the text message.
+    serviceLocator<ChatCubit>().sendTextMessage(
+      textMessageEntity: TextMessageModel(
+        messageId: '',
+        expiredAt: DateTime(2030),
+        time: DateTime.now(),
+        senderId: _myId ?? '',
+        content: userReply,
+        senderName: _myName ?? "",
+        type: "sent",
+        receiverName: '',
+        recipientId: '',
+      ),
+      channelId: _channelId ?? "",
+    );
+
+    // Update the group with the last message.
+    serviceLocator<GroupCubit>().updateGroup(
+      groupEntity: GroupEntity(
+        groupId: _channelId ?? '',
+        lastMessage: userReply ?? '',
+        creationTime: Timestamp.now(),
+      ),
+    );
+
+    debugPrint("FCM Token: $_fcmToken");
+
+    // Forward the notification to the selected driver.
+    PushNotificationService.sendNotificationToSelectedDriver(
+      _fcmToken ?? '',
       userReply ?? "",
-      channelId: channelid ?? "",
-      senderId: myId ?? '',
-      reciverId: senderId ?? '',
-      reciverName: myName ?? '');
-  // Optionally, handle route navigation using payload data.
-  // FirebaseCloudMessaging.instance.handleRouteFromMessage(action.payload ?? {});
+      channelId: _channelId ?? "",
+      senderId: _myId ?? '',
+      reciverId: _senderId ?? '',
+      reciverName: _myName ?? '',
+    );
+  }
+
+  Future<void> _setFcm(String id) async {
+    final fcmToken = await FirebaseRemoteDataSource.getFcmTokenByUid(id);
+    debugPrint("FCM token fetched: $fcmToken");
+    _fcmToken = fcmToken;
+  }
 }
 
+/// Top-level function required by Awesome Notifications.
+/// Delegates action handling to our NotificationHandler singleton.
+Future<void> onActionReceived(ReceivedAction action) async {
+  if (action.buttonKeyPressed == 'REPLY') {
+    await NotificationHandler.instance.onActionReceivedMethod(action);
+    log("ACTIONNIOOO");
+  }
+}
+
+/// This class manages Firebase Messaging and Awesome Notifications.
 class FirebaseCloudMessaging {
-  final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   bool notificationsInitialized = false;
+  final NotificationHandler _notificationHandler = NotificationHandler.instance;
 
   /// Call early (e.g., in main()) to set up message handlers.
   Future<void> setupInteractedMessage() async {
     // Handle terminated state messages.
-    RemoteMessage? initialMessage = await firebaseMessaging.getInitialMessage();
+    RemoteMessage? initialMessage =
+        await _firebaseMessaging.getInitialMessage();
     if (initialMessage != null) {
       _handleMessage(initialMessage);
     }
@@ -382,19 +425,19 @@ class FirebaseCloudMessaging {
   }
 
   void _handleMessage(RemoteMessage message) {
-    // Show a notification via Awesome Notifications.
+    // Display a notification via Awesome Notifications.
     showAwesomeNotification(message);
     // Optionally, handle additional routing here.
     // handleRouteFromMessage(message.data);
   }
 
+  /// Update message types in Firestore (e.g., from "sent" to "delivered").
   static Future<void> updateMessageTypes(
     String channelId,
     String newType,
     String? senderId,
   ) async {
-    log("IN UPDATE");
-
+    debugPrint("Updating message types for channel: $channelId");
     try {
       final messagesRef = FirebaseFirestore.instance
           .collection("groupChatChannel")
@@ -402,56 +445,33 @@ class FirebaseCloudMessaging {
           .collection("messages");
 
       final querySnapshot = await messagesRef.get();
-
       for (var doc in querySnapshot.docs) {
         final data = doc.data();
-        log("FOR ${data["type"] != "seen"} ");
         if (data['senderId'] == senderId && data["type"] != "seen") {
-          log("IN IF ");
           await doc.reference.update({"type": newType});
         }
       }
     } catch (e) {
-      log("Error updating message types: $e");
+      debugPrint("Error updating message types: $e");
     }
   }
 
-  /// Optionally navigate based on the payload.
-  void handleRouteFromMessage(Map<String, dynamic> message) {
-    switch (message['type']) {
-      case 'Home':
-        // Navigate to Home.
-        break;
-      case 'Category':
-        // Navigate to Category.
-        break;
-      default:
-        break;
-    }
-  }
-
-  /// Set up Firebase Messaging token and listen for foreground messages.
+  /// Set up Firebase notifications and listen for messages.
   Future<void> getFirebaseNotification() async {
-    // For iOS, get the APNs token.
-    firebaseMessaging.getAPNSToken().then((apnsToken) {
-      print('APNS token: $apnsToken');
+    _firebaseMessaging.getAPNSToken().then((apnsToken) {
+      debugPrint('APNS token: $apnsToken');
     });
 
-    // Get the FCM token.
-    firebaseMessaging.getToken().then((value) {
-      print('FCM token: $value');
+    _firebaseMessaging.getToken().then((token) {
+      debugPrint('FCM token: $token');
     }).catchError((onError) {
-      print("Exception: $onError");
+      debugPrint("Error fetching FCM token: $onError");
     });
 
-    // Listen for token refresh.
-    firebaseMessaging.onTokenRefresh.listen((fcmToken) {
+    _firebaseMessaging.onTokenRefresh.listen((fcmToken) {
       // Handle token refresh if needed.
-    }).onError((err) {
-      // Handle errors.
-    });
+    }).onError((err) {});
 
-    // Listen for foreground messages.
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       showAwesomeNotification(message);
     });
@@ -462,21 +482,28 @@ class FirebaseCloudMessaging {
     if (!notificationsInitialized) {
       await setupAwesomeNotifications();
     }
-    channelid = message.data['channelId'].toString();
-    senderId = message.data['senderId'].toString();
-    myId = message.data['reciverId'].toString();
-    myName = message.data['reciverName'].toString();
-    updateMessageTypes(message.data['channelId'].toString(), "delivered",
-        message.data['senderId'].toString());
 
-    log("Displaying Awesome Notification ");
+    // Update our handler with data from the message.
+    _notificationHandler.updateFromMessageData({
+      'channelId': message.data['channelId']?.toString() ?? '',
+      'senderId': message.data['senderId']?.toString() ?? '',
+      'reciverId': message.data['reciverId']?.toString() ?? '',
+      'reciverName': message.data['reciverName']?.toString() ?? '',
+    });
+
+    // Mark messages as delivered.
+    updateMessageTypes(
+      message.data['channelId']?.toString() ?? '',
+      "delivered",
+      message.data['senderId']?.toString(),
+    );
+
+    debugPrint("Displaying Awesome Notification");
 
     // Prepare notification content.
     String title = message.data['title']?.toString() ?? '';
     String body = message.data['body']?.toString() ?? '';
     String? imageUrl = message.data['image'];
-
-    // Create a unique notification ID.
     int notificationId =
         DateTime.now().millisecondsSinceEpoch.remainder(100000);
 
@@ -488,7 +515,6 @@ class FirebaseCloudMessaging {
         title: title,
         body: body,
         bigPicture: imageUrl,
-        // Use BigPicture layout if an image URL is provided.
         notificationLayout: (imageUrl != null && imageUrl.isNotEmpty)
             ? NotificationLayout.BigPicture
             : NotificationLayout.Default,
@@ -509,13 +535,12 @@ class FirebaseCloudMessaging {
   /// Handles the user's reply from the notification.
   void handleReplyMessage(String? reply) {
     if (reply != null && reply.isNotEmpty) {
-      log('User replied: $reply');
-      // Send the reply to your backend API.
+      debugPrint('User replied: $reply');
       sendReplyToServer(reply);
     }
   }
 
-  /// Sends the user's reply to your backend.
+  /// Sends the user's reply to your backend API.
   Future<void> sendReplyToServer(String reply) async {
     try {
       final response = await http.post(
@@ -524,12 +549,12 @@ class FirebaseCloudMessaging {
         body: jsonEncode({'reply': reply}),
       );
       if (response.statusCode == 200) {
-        log('Reply sent successfully');
+        debugPrint('Reply sent successfully');
       } else {
-        log('Failed to send reply: ${response.body}');
+        debugPrint('Failed to send reply: ${response.body}');
       }
     } catch (e) {
-      log('Error sending reply: $e');
+      debugPrint('Error sending reply: $e');
     }
   }
 
@@ -556,9 +581,9 @@ class FirebaseCloudMessaging {
       await AwesomeNotifications().requestPermissionToSendNotifications();
     }
 
-    // Register the global function as the action listener.
+    // Register the top-level action listener.
     AwesomeNotifications().setListeners(
-      onActionReceivedMethod: onActionReceivedMethod,
+      onActionReceivedMethod: onActionReceived,
       onNotificationCreatedMethod: null,
       onNotificationDisplayedMethod: null,
       onDismissActionReceivedMethod: null,

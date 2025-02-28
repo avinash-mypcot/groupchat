@@ -23,6 +23,7 @@ import 'injection_container.dart';
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   log("IN firebaseMessagingBackgroundHandler");
+  // await init();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseCloudMessaging().showAwesomeNotification(message);
 }
@@ -69,6 +70,8 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
