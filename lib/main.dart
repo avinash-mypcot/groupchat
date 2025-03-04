@@ -1,9 +1,11 @@
 import 'dart:developer';
 
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:group_chat/core/constants/app_const.dart';
 import 'package:group_chat/features/presentation/cubit/chat/chat_cubit.dart';
 import 'package:group_chat/features/presentation/cubit/user/user_cubit.dart';
@@ -25,7 +27,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   log("IN firebaseMessagingBackgroundHandler");
   // await init();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  FirebaseCloudMessaging().showAwesomeNotification(message);
+  if (!GetIt.I.isRegistered<FirebaseCloudMessaging>()) {
+    serviceLocator.registerLazySingleton<FirebaseCloudMessaging>(
+        () => FirebaseCloudMessaging());
+  }
+
+  serviceLocator<FirebaseCloudMessaging>().showAwesomeNotification(message);
 }
 
 void main() async {

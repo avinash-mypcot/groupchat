@@ -304,18 +304,45 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:get_it/get_it.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 
 import '../../../features/data/api/firebase_remote_data_source.dart';
 import '../../../features/data/models/group_entity.dart';
+import '../../../features/data/repositories/create_group_repository.dart';
+import '../../../features/data/repositories/get_all_group_repository.dart';
+import '../../../features/data/repositories/get_messages_repository.dart';
+import '../../../features/data/repositories/join_group_repository.dart';
+import '../../../features/data/repositories/send_text_message_repository.dart';
+import '../../../features/data/repositories/update_group_repository.dart';
+import '../../../features/data/services/firebase_services.dart';
 import '../../../features/presentation/cubit/chat/chat_cubit.dart';
 import '../../../features/presentation/cubit/group/group_cubit.dart';
+import '../../../firebase_options.dart';
 import '../../../injection_container.dart';
 import '../hive/hive_model.dart';
 import 'push_notification_service.dart';
+import "package:firebase_core/firebase_core.dart";
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// Top-level function required by Awesome Notifications.
+/// Delegates action handling to our NotificationHandler singleton.
+Future<void> onActionReceived(ReceivedAction action) async {
+  if (action.buttonKeyPressed == 'REPLY') {
+    debugPrint(
+        "onActionReceivedSenderId${NotificationHandler.instance._senderId}");
+
+    await NotificationHandler.instance.onActionReceivedMethod(action);
+    log("ACTIONNIOOO");
+    // Explicitly dismiss the notification.
+    await AwesomeNotifications().dismiss(action.id!);
+  }
+}
 
 /// A dedicated handler for notification actions that stores
 /// notification-related data as instance variables instead of globals.
@@ -323,6 +350,7 @@ class NotificationHandler {
   // Singleton instance.
   static final NotificationHandler instance = NotificationHandler._internal();
   NotificationHandler._internal();
+  bool actionProcessed = false;
 
   String? _channelId;
   String? _senderId;
@@ -336,71 +364,132 @@ class NotificationHandler {
     _senderId = data['senderId'];
     _myId = data['reciverId'];
     _myName = data['reciverName'];
+    debugPrint("CHANGED $_channelId");
   }
 
   /// Instance method that handles notification actions.
   Future<void> onActionReceivedMethod(ReceivedAction action) async {
+    final data = FirebaseCloudMessaging.getNotificationData();
+    if (actionProcessed) return; // Prevent duplicate processing
+    WidgetsFlutterBinding
+        .ensureInitialized(); // Ensure Flutter bindings are initialized
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      ); // Initialize Firebase if not already initialized
+    }
+    debugPrint("CHANGEDdfedf $data[_channelId]");
+    actionProcessed = true;
+    if (!GetIt.I.isRegistered<FirebaseServices>()) {
+      serviceLocator.registerLazySingleton<FirebaseServices>(
+          () => FirebaseServices(remoteDataSource: serviceLocator.call()));
+    }
+    if (!GetIt.I.isRegistered<GetMessageRepository>()) {
+      serviceLocator.registerLazySingleton<GetMessageRepository>(
+          () => GetMessageRepository(repository: serviceLocator.call()));
+    }
+
+    if (!GetIt.I.isRegistered<SendTextMessageRepository>()) {
+      serviceLocator.registerLazySingleton<SendTextMessageRepository>(
+          () => SendTextMessageRepository(repository: serviceLocator.call()));
+    }
+    if (!GetIt.I.isRegistered<FirebaseRemoteDataSource>()) {
+      final fireStore = FirebaseFirestore.instance;
+      final auth = FirebaseAuth.instance;
+
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      serviceLocator.registerLazySingleton<FirebaseRemoteDataSource>(
+          () => FirebaseRemoteDataSource(fireStore, auth, googleSignIn));
+    }
+    if (!GetIt.I.isRegistered<ChatCubit>()) {
+      log("ChatCubit Not Register");
+      serviceLocator.registerLazySingleton<ChatCubit>(() => ChatCubit(
+            getMessageRepository: serviceLocator.call(),
+            sendTextMessageRepository: serviceLocator.call(),
+          ));
+    }
+    if (!GetIt.I.isRegistered<GetCreateGroupRepository>()) {
+      serviceLocator.registerLazySingleton<GetCreateGroupRepository>(
+          () => GetCreateGroupRepository(repository: serviceLocator.call()));
+    }
+    if (!GetIt.I.isRegistered<GetAllGroupsRepository>()) {
+      serviceLocator.registerLazySingleton<GetAllGroupsRepository>(
+          () => GetAllGroupsRepository(repository: serviceLocator.call()));
+    }
+    if (!GetIt.I.isRegistered<JoinGroupRepository>()) {
+      serviceLocator.registerLazySingleton<JoinGroupRepository>(
+          () => JoinGroupRepository(repository: serviceLocator.call()));
+    }
+    if (!GetIt.I.isRegistered<UpdateGroupRepository>()) {
+      serviceLocator.registerLazySingleton<UpdateGroupRepository>(
+          () => UpdateGroupRepository(repository: serviceLocator.call()));
+    }
+    if (!GetIt.I.isRegistered<GroupCubit>()) {
+      serviceLocator.registerFactory<GroupCubit>(() => GroupCubit(
+            getAllGroupsRepository: serviceLocator.call(),
+            getCreateGroupRepository: serviceLocator.call(),
+            joinGroupRepository: serviceLocator.call(),
+            groupRepository: serviceLocator.call(),
+          ));
+    }
+
+    // await init();
+
     String? userReply;
     // Ensure FCM token is set for the sender.
+    debugPrint("SenderId$_senderId");
     await _setFcm(_senderId ?? '');
     if (action.buttonKeyPressed == 'REPLY') {
       userReply = action.buttonKeyInput;
       // Optionally forward the reply if needed.
       // FirebaseCloudMessaging.instance.handleReplyMessage(userReply);
-    }
-    debugPrint("ACTION channelId: $_channelId");
 
-    // Send the text message.
-    serviceLocator<ChatCubit>().sendTextMessage(
-      textMessageEntity: TextMessageModel(
-        messageId: '',
-        expiredAt: DateTime(2030),
-        time: DateTime.now(),
+      debugPrint("ACTION channelId: $_channelId");
+      debugPrint("UserReply$userReply");
+      // Send the text message.
+
+      // Update the group with the last message.
+      serviceLocator<GroupCubit>().updateGroup(
+        groupEntity: GroupEntity(
+          groupId: _channelId ?? '',
+          lastMessage: userReply ?? '',
+          creationTime: Timestamp.now(),
+        ),
+      );
+
+      serviceLocator<ChatCubit>().sendTextMessage(
+        textMessageEntity: TextMessageModel(
+          messageId: '',
+          expiredAt: DateTime(2030),
+          time: DateTime.now(),
+          senderId: _myId ?? '',
+          content: userReply,
+          senderName: _myName ?? "",
+          type: "sent",
+          receiverName: '',
+          recipientId: '',
+        ),
+        channelId: _channelId ?? "",
+      );
+
+      debugPrint("FCM Token: $_fcmToken");
+
+      // Forward the notification to the selected driver.
+      PushNotificationService.sendNotificationToSelectedDriver(
+        _fcmToken ?? '',
+        userReply ?? "",
+        channelId: _channelId ?? "",
         senderId: _myId ?? '',
-        content: userReply,
-        senderName: _myName ?? "",
-        type: "sent",
-        receiverName: '',
-        recipientId: '',
-      ),
-      channelId: _channelId ?? "",
-    );
-
-    // Update the group with the last message.
-    serviceLocator<GroupCubit>().updateGroup(
-      groupEntity: GroupEntity(
-        groupId: _channelId ?? '',
-        lastMessage: userReply ?? '',
-        creationTime: Timestamp.now(),
-      ),
-    );
-
-    debugPrint("FCM Token: $_fcmToken");
-
-    // Forward the notification to the selected driver.
-    PushNotificationService.sendNotificationToSelectedDriver(
-      _fcmToken ?? '',
-      userReply ?? "",
-      channelId: _channelId ?? "",
-      senderId: _myId ?? '',
-      reciverId: _senderId ?? '',
-      reciverName: _myName ?? '',
-    );
+        reciverId: _senderId ?? '',
+        reciverName: _myName ?? '',
+      );
+    }
   }
 
   Future<void> _setFcm(String id) async {
     final fcmToken = await FirebaseRemoteDataSource.getFcmTokenByUid(id);
     debugPrint("FCM token fetched: $fcmToken");
     _fcmToken = fcmToken;
-  }
-}
-
-/// Top-level function required by Awesome Notifications.
-/// Delegates action handling to our NotificationHandler singleton.
-Future<void> onActionReceived(ReceivedAction action) async {
-  if (action.buttonKeyPressed == 'REPLY') {
-    await NotificationHandler.instance.onActionReceivedMethod(action);
-    log("ACTIONNIOOO");
   }
 }
 
@@ -426,6 +515,7 @@ class FirebaseCloudMessaging {
 
   void _handleMessage(RemoteMessage message) {
     // Display a notification via Awesome Notifications.
+    log("IN ON MESSAGE LISTEN1");
     showAwesomeNotification(message);
     // Optionally, handle additional routing here.
     // handleRouteFromMessage(message.data);
@@ -473,18 +563,44 @@ class FirebaseCloudMessaging {
     }).onError((err) {});
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      log("IN ON MESSAGE LISTEN");
       showAwesomeNotification(message);
     });
   }
 
+  Future<void> saveNotificationData(Map<String, String> messageData) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    await prefs.setString('channelId', messageData['channelId'] ?? '');
+    await prefs.setString('senderId', messageData['senderId'] ?? '');
+    await prefs.setString('reciverId', messageData['reciverId'] ?? '');
+    await prefs.setString('reciverName', messageData['reciverName'] ?? '');
+  }
+static Future<Map<String, String>> getNotificationData() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  
+  return {
+    'channelId': prefs.getString('channelId') ?? '',
+    'senderId': prefs.getString('senderId') ?? '',
+    'reciverId': prefs.getString('reciverId') ?? '',
+    'reciverName': prefs.getString('reciverName') ?? '',
+  };
+}
   /// Displays a notification using Awesome Notifications.
   Future<void> showAwesomeNotification(RemoteMessage message) async {
     if (!notificationsInitialized) {
       await setupAwesomeNotifications();
     }
-
+    debugPrint(
+        "updateFromMessageData  Awesome Notification${message.data['channelId']?.toString()}");
     // Update our handler with data from the message.
     _notificationHandler.updateFromMessageData({
+      'channelId': message.data['channelId']?.toString() ?? '',
+      'senderId': message.data['senderId']?.toString() ?? '',
+      'reciverId': message.data['reciverId']?.toString() ?? '',
+      'reciverName': message.data['reciverName']?.toString() ?? '',
+    });
+    saveNotificationData({
       'channelId': message.data['channelId']?.toString() ?? '',
       'senderId': message.data['senderId']?.toString() ?? '',
       'reciverId': message.data['reciverId']?.toString() ?? '',
@@ -497,7 +613,7 @@ class FirebaseCloudMessaging {
       "delivered",
       message.data['senderId']?.toString(),
     );
-
+    _notificationHandler.actionProcessed = false;
     debugPrint("Displaying Awesome Notification");
 
     // Prepare notification content.
@@ -510,6 +626,7 @@ class FirebaseCloudMessaging {
     // Create the notification with an input action button.
     AwesomeNotifications().createNotification(
       content: NotificationContent(
+        actionType: ActionType.SilentAction,
         id: notificationId,
         channelKey: 'high_importance_channel',
         title: title,
@@ -564,31 +681,40 @@ class FirebaseCloudMessaging {
       null,
       [
         NotificationChannel(
-          channelKey: 'high_importance_channel',
-          channelName: 'High Importance Notifications',
-          channelDescription:
-              'This channel is used for important notifications.',
-          defaultColor: const Color(0xFF9D50DD),
-          importance: NotificationImportance.Max,
-          channelShowBadge: true,
-        )
+            channelKey: 'high_importance_channel',
+            channelName: 'High Importance Notifications',
+            channelDescription:
+                'This channel is used for important notifications.',
+            defaultColor: const Color(0xFF9D50DD),
+            importance: NotificationImportance.Max,
+            channelShowBadge: true,
+            soundSource: null)
       ],
-      debug: true,
+      debug: false,
     );
 
     bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
     if (!isAllowed) {
       await AwesomeNotifications().requestPermissionToSendNotifications();
     }
+    if (!notificationsInitialized) {
+      AwesomeNotifications().setListeners(
+        onActionReceivedMethod: onActionReceived,
+        onNotificationCreatedMethod: null,
+        onNotificationDisplayedMethod: null,
+        onDismissActionReceivedMethod: null,
+      );
+      notificationsInitialized = true;
+    }
 
     // Register the top-level action listener.
-    AwesomeNotifications().setListeners(
-      onActionReceivedMethod: onActionReceived,
-      onNotificationCreatedMethod: null,
-      onNotificationDisplayedMethod: null,
-      onDismissActionReceivedMethod: null,
-    );
+    // AwesomeNotifications().setListeners(
+    //   onActionReceivedMethod: onActionReceived,
+    //   onNotificationCreatedMethod: null,
+    //   onNotificationDisplayedMethod: null,
+    //   onDismissActionReceivedMethod: null,
+    // );
 
-    notificationsInitialized = true;
+    // notificationsInitialized = true;
   }
 }

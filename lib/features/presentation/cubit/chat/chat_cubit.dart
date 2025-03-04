@@ -30,10 +30,13 @@ class ChatCubit extends Cubit<ChatState> {
       {required TextMessageModel textMessageEntity,
       required String channelId}) async {
     try {
+      log("SENT MSG");
       await sendTextMessageRepository.call(textMessageEntity, channelId);
     } on SocketException catch (_) {
       emit(ChatFailure());
     } catch (_) {
+      log("SENT MSG EROOR $_");
+
       emit(ChatFailure());
     }
   }

@@ -226,12 +226,12 @@ class FirebaseRemoteDataSource {
       time: textMessageEntity.time,
       type: textMessageEntity.type,
     );
-    final currentState = serviceLocator<NetworkBloc>().state;
+    // final currentState = serviceLocator<NetworkBloc>().state;
     // Save to Firebase if connected
     // if (await currentState is NetworkSuccess) {
     log("STORING LOCAL DATA$messageId");
     try {
-      final res=await messagesRef.doc(messageId).set(newMessage.toDocument());
+      final res = await messagesRef.doc(messageId).set(newMessage.toDocument());
     } catch (e) {
       log("STORING LOCAL DATA11$e");
     }
@@ -247,9 +247,9 @@ class FirebaseRemoteDataSource {
     final oneToOneChatChannelRef = fireStore.collection("groupChatChannel");
     final messagesRef =
         oneToOneChatChannelRef.doc(channelId).collection("messages");
-    final currentState = serviceLocator<NetworkBloc>().state;
+    // final currentState = serviceLocator<NetworkBloc>().state;
     // Save to Firebase if connected
-    log('GET MESSAGE1212$currentState');
+    // log('GET MESSAGE1212$currentState');
     // if (await currentState is NetworkSuccess) {
     yield* messagesRef.orderBy('time').snapshots().map((querySnap) {
       final messages = querySnap.docs
