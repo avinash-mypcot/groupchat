@@ -15,7 +15,8 @@ import 'package:group_chat/features/data/repositories/update_group_repository.da
 import 'package:group_chat/features/presentation/cubit/group/group_cubit.dart';
 import 'package:group_chat/features/presentation/cubit/user/user_cubit.dart';
 import 'core/services/network/bloc/network_bloc.dart';
-import 'core/services/notification/notification_service.dart';
+import 'core/services/notification/awesome_notification_service.dart' show FirebaseCloudMessaging;
+import 'core/services/notification/local_notification_service.dart';
 import 'features/data/api/firebase_remote_data_source.dart';
 import 'features/data/services/firebase_services.dart';
 import 'features/data/repositories/forgot_password_repository.dart';

@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/mypcotdevelopment/development/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/mypcotdevelopment/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/mypcotdevelopment/flutter development/avinash/groupchat/android/app/.cxx/Debug/13565q5y/armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/mypcotdevelopment/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/mypcotdevelopment/flutter development/avinash/groupchat/android/app/.cxx/Debug/13565q5y/armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

@@ -64,6 +64,11 @@ dependencies:
   awesome_notifications: ^0.10.1
   awesome_notifications_core: ^0.10.1
   shared_preferences: ^2.5.2
+  workmanager:
+    git:
+      url: https://github.com/fluttercommunity/flutter_workmanager.git
+      path: workmanager
+      ref: main
 
 dev_dependencies:
   flutter_test:

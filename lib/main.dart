@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,8 +10,10 @@ import 'package:group_chat/features/presentation/cubit/chat/chat_cubit.dart';
 import 'package:group_chat/features/presentation/cubit/user/user_cubit.dart';
 import 'package:group_chat/features/presentation/pages/login_page.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:workmanager/workmanager.dart';
 import 'core/services/network/bloc/network_bloc.dart';
-import 'core/services/notification/notification_service.dart';
+import 'core/services/notification/awesome_notification_service.dart';
+import 'core/services/notification/push_notification_service.dart';
 import 'features/presentation/cubit/auth/auth_cubit.dart';
 import 'features/presentation/cubit/credential/credential_cubit.dart';
 import 'features/presentation/cubit/group/group_cubit.dart';
@@ -51,7 +52,6 @@ void main() async {
     sound: true,
     provisional: false,
   );
-  // await FirebaseMessaging.instance.requestPermission();
 
   await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
     alert: true,
@@ -67,14 +67,48 @@ void main() async {
     if (call.method == "onNotificationReply") {
       String reply = call.arguments;
       print("User replied: $reply");
-      // Handle reply in Flutter (e.g., send to server, update UI, etc.)
     }
+
   });
-  // await Hive.initFlutter();
-  // Hive.registerAdapter(TextMessageModelAdapter());
-  // await Hive.openBox<TextMessageModel>('messages');
+  await Workmanager().initialize(
+    callbackDispatcher, // Background callback
+    isInDebugMode: true, // Remove this in production
+  );
   runApp(MyApp());
 }
+@pragma('vm:entry-point') 
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    // Extract data from inputData
+    String? fcmToken = inputData?['fcmToken'];
+    String? userReply = inputData?['userReply'];
+    String? channelId = inputData?['channelId'];
+    String? senderId = inputData?['senderId'];
+    String? receiverId = inputData?['receiverId'];
+    String? receiverName = inputData?['receiverName'];
+
+    // Ensure dependencies are initialized (if using Firebase, GetIt, etc.)
+    WidgetsFlutterBinding.ensureInitialized();
+    
+    try {
+      // Call the notification service
+      await PushNotificationService.sendNotificationToSelectedDriver(
+        fcmToken ?? '',
+        userReply ?? '',
+        channelId: channelId ?? '',
+        senderId: senderId ?? '',
+        reciverId: receiverId ?? '',
+        reciverName: receiverName ?? '',
+      );
+
+      return Future.value(true);
+    } catch (e) {
+      debugPrint("Error in WorkManager: $e");
+      return Future.value(false);
+    }
+  });
+}
+
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
