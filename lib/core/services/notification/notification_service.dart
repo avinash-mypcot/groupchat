@@ -300,7 +300,7 @@
 //             AndroidFlutterLocalNotificationsPlugin>()
 //         ?.createNotificationChannel(channel);
 //   }
-// }
+// }import 'dart:convert';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -311,7 +311,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
-
+ 
 import '../../../features/data/api/firebase_remote_data_source.dart';
 import '../../../features/data/models/group_entity.dart';
 import '../../../features/data/repositories/create_group_repository.dart';
@@ -329,21 +329,22 @@ import '../hive/hive_model.dart';
 import 'push_notification_service.dart';
 import "package:firebase_core/firebase_core.dart";
 import 'package:shared_preferences/shared_preferences.dart';
-
+ 
 /// Top-level function required by Awesome Notifications.
 /// Delegates action handling to our NotificationHandler singleton.
+@pragma('vm:entry-point')
 Future<void> onActionReceived(ReceivedAction action) async {
   if (action.buttonKeyPressed == 'REPLY') {
     debugPrint(
         "onActionReceivedSenderId${NotificationHandler.instance._senderId}");
-
+ 
     await NotificationHandler.instance.onActionReceivedMethod(action);
     log("ACTIONNIOOO");
     // Explicitly dismiss the notification.
     await AwesomeNotifications().dismiss(action.id!);
   }
 }
-
+ 
 /// A dedicated handler for notification actions that stores
 /// notification-related data as instance variables instead of globals.
 class NotificationHandler {
@@ -351,13 +352,13 @@ class NotificationHandler {
   static final NotificationHandler instance = NotificationHandler._internal();
   NotificationHandler._internal();
   bool actionProcessed = false;
-
+ 
   String? _channelId;
   String? _senderId;
   String? _myId;
   String? _myName;
   String? _fcmToken;
-
+ 
   /// Update the handler with data from the incoming message.
   void updateFromMessageData(Map<String, String> data) {
     _channelId = data['channelId'];
@@ -366,11 +367,18 @@ class NotificationHandler {
     _myName = data['reciverName'];
     debugPrint("CHANGED $_channelId");
   }
-
+ 
   /// Instance method that handles notification actions.
   Future<void> onActionReceivedMethod(ReceivedAction action) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+ 
     final data = FirebaseCloudMessaging.getNotificationData();
     if (actionProcessed) return; // Prevent duplicate processing
+    _channelId = prefs.getString('channelId');
+    _senderId = prefs.getString('senderId');
+    _myId = prefs.getString('reciverId');
+    _myName = prefs.getString('reciverName');
+    _fcmToken = prefs.getString('fcm');
     WidgetsFlutterBinding
         .ensureInitialized(); // Ensure Flutter bindings are initialized
     if (Firebase.apps.isEmpty) {
@@ -388,7 +396,7 @@ class NotificationHandler {
       serviceLocator.registerLazySingleton<GetMessageRepository>(
           () => GetMessageRepository(repository: serviceLocator.call()));
     }
-
+ 
     if (!GetIt.I.isRegistered<SendTextMessageRepository>()) {
       serviceLocator.registerLazySingleton<SendTextMessageRepository>(
           () => SendTextMessageRepository(repository: serviceLocator.call()));
@@ -396,7 +404,7 @@ class NotificationHandler {
     if (!GetIt.I.isRegistered<FirebaseRemoteDataSource>()) {
       final fireStore = FirebaseFirestore.instance;
       final auth = FirebaseAuth.instance;
-
+ 
       final GoogleSignIn googleSignIn = GoogleSignIn();
       serviceLocator.registerLazySingleton<FirebaseRemoteDataSource>(
           () => FirebaseRemoteDataSource(fireStore, auth, googleSignIn));
@@ -432,9 +440,9 @@ class NotificationHandler {
             groupRepository: serviceLocator.call(),
           ));
     }
-
+ 
     // await init();
-
+ 
     String? userReply;
     // Ensure FCM token is set for the sender.
     debugPrint("SenderId$_senderId");
@@ -443,11 +451,11 @@ class NotificationHandler {
       userReply = action.buttonKeyInput;
       // Optionally forward the reply if needed.
       // FirebaseCloudMessaging.instance.handleReplyMessage(userReply);
-
+ 
       debugPrint("ACTION channelId: $_channelId");
       debugPrint("UserReply$userReply");
       // Send the text message.
-
+ 
       // Update the group with the last message.
       serviceLocator<GroupCubit>().updateGroup(
         groupEntity: GroupEntity(
@@ -456,7 +464,7 @@ class NotificationHandler {
           creationTime: Timestamp.now(),
         ),
       );
-
+ 
       serviceLocator<ChatCubit>().sendTextMessage(
         textMessageEntity: TextMessageModel(
           messageId: '',
@@ -471,9 +479,9 @@ class NotificationHandler {
         ),
         channelId: _channelId ?? "",
       );
-
+ 
       debugPrint("FCM Token: $_fcmToken");
-
+ 
       // Forward the notification to the selected driver.
       PushNotificationService.sendNotificationToSelectedDriver(
         _fcmToken ?? '',
@@ -485,20 +493,20 @@ class NotificationHandler {
       );
     }
   }
-
+ 
   Future<void> _setFcm(String id) async {
     final fcmToken = await FirebaseRemoteDataSource.getFcmTokenByUid(id);
     debugPrint("FCM token fetched: $fcmToken");
     _fcmToken = fcmToken;
   }
 }
-
+ 
 /// This class manages Firebase Messaging and Awesome Notifications.
 class FirebaseCloudMessaging {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   bool notificationsInitialized = false;
   final NotificationHandler _notificationHandler = NotificationHandler.instance;
-
+ 
   /// Call early (e.g., in main()) to set up message handlers.
   Future<void> setupInteractedMessage() async {
     // Handle terminated state messages.
@@ -512,7 +520,7 @@ class FirebaseCloudMessaging {
       _handleMessage(message);
     });
   }
-
+ 
   void _handleMessage(RemoteMessage message) {
     // Display a notification via Awesome Notifications.
     log("IN ON MESSAGE LISTEN1");
@@ -520,7 +528,7 @@ class FirebaseCloudMessaging {
     // Optionally, handle additional routing here.
     // handleRouteFromMessage(message.data);
   }
-
+ 
   /// Update message types in Firestore (e.g., from "sent" to "delivered").
   static Future<void> updateMessageTypes(
     String channelId,
@@ -533,7 +541,7 @@ class FirebaseCloudMessaging {
           .collection("groupChatChannel")
           .doc(channelId)
           .collection("messages");
-
+ 
       final querySnapshot = await messagesRef.get();
       for (var doc in querySnapshot.docs) {
         final data = doc.data();
@@ -545,47 +553,49 @@ class FirebaseCloudMessaging {
       debugPrint("Error updating message types: $e");
     }
   }
-
+ 
   /// Set up Firebase notifications and listen for messages.
   Future<void> getFirebaseNotification() async {
     _firebaseMessaging.getAPNSToken().then((apnsToken) {
       debugPrint('APNS token: $apnsToken');
     });
-
+ 
     _firebaseMessaging.getToken().then((token) {
       debugPrint('FCM token: $token');
     }).catchError((onError) {
       debugPrint("Error fetching FCM token: $onError");
     });
-
+ 
     _firebaseMessaging.onTokenRefresh.listen((fcmToken) {
       // Handle token refresh if needed.
     }).onError((err) {});
-
+ 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       log("IN ON MESSAGE LISTEN");
       showAwesomeNotification(message);
     });
   }
-
+ 
   Future<void> saveNotificationData(Map<String, String> messageData) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-
+ 
     await prefs.setString('channelId', messageData['channelId'] ?? '');
     await prefs.setString('senderId', messageData['senderId'] ?? '');
     await prefs.setString('reciverId', messageData['reciverId'] ?? '');
     await prefs.setString('reciverName', messageData['reciverName'] ?? '');
   }
-static Future<Map<String, String>> getNotificationData() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  
-  return {
-    'channelId': prefs.getString('channelId') ?? '',
-    'senderId': prefs.getString('senderId') ?? '',
-    'reciverId': prefs.getString('reciverId') ?? '',
-    'reciverName': prefs.getString('reciverName') ?? '',
-  };
-}
+ 
+  static Future<Map<String, String>> getNotificationData() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+ 
+    return {
+      'channelId': prefs.getString('channelId') ?? '',
+      'senderId': prefs.getString('senderId') ?? '',
+      'reciverId': prefs.getString('reciverId') ?? '',
+      'reciverName': prefs.getString('reciverName') ?? '',
+    };
+  }
+ 
   /// Displays a notification using Awesome Notifications.
   Future<void> showAwesomeNotification(RemoteMessage message) async {
     if (!notificationsInitialized) {
@@ -606,7 +616,7 @@ static Future<Map<String, String>> getNotificationData() async {
       'reciverId': message.data['reciverId']?.toString() ?? '',
       'reciverName': message.data['reciverName']?.toString() ?? '',
     });
-
+ 
     // Mark messages as delivered.
     updateMessageTypes(
       message.data['channelId']?.toString() ?? '',
@@ -615,14 +625,14 @@ static Future<Map<String, String>> getNotificationData() async {
     );
     _notificationHandler.actionProcessed = false;
     debugPrint("Displaying Awesome Notification");
-
+ 
     // Prepare notification content.
     String title = message.data['title']?.toString() ?? '';
     String body = message.data['body']?.toString() ?? '';
     String? imageUrl = message.data['image'];
     int notificationId =
         DateTime.now().millisecondsSinceEpoch.remainder(100000);
-
+ 
     // Create the notification with an input action button.
     AwesomeNotifications().createNotification(
       content: NotificationContent(
@@ -648,7 +658,7 @@ static Future<Map<String, String>> getNotificationData() async {
       ],
     );
   }
-
+ 
   /// Handles the user's reply from the notification.
   void handleReplyMessage(String? reply) {
     if (reply != null && reply.isNotEmpty) {
@@ -656,7 +666,7 @@ static Future<Map<String, String>> getNotificationData() async {
       sendReplyToServer(reply);
     }
   }
-
+ 
   /// Sends the user's reply to your backend API.
   Future<void> sendReplyToServer(String reply) async {
     try {
@@ -674,7 +684,7 @@ static Future<Map<String, String>> getNotificationData() async {
       debugPrint('Error sending reply: $e');
     }
   }
-
+ 
   /// Initializes Awesome Notifications and registers the action listener.
   Future<void> setupAwesomeNotifications() async {
     AwesomeNotifications().initialize(
@@ -692,7 +702,7 @@ static Future<Map<String, String>> getNotificationData() async {
       ],
       debug: false,
     );
-
+ 
     bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
     if (!isAllowed) {
       await AwesomeNotifications().requestPermissionToSendNotifications();
@@ -706,7 +716,7 @@ static Future<Map<String, String>> getNotificationData() async {
       );
       notificationsInitialized = true;
     }
-
+ 
     // Register the top-level action listener.
     // AwesomeNotifications().setListeners(
     //   onActionReceivedMethod: onActionReceived,
@@ -714,7 +724,7 @@ static Future<Map<String, String>> getNotificationData() async {
     //   onNotificationDisplayedMethod: null,
     //   onDismissActionReceivedMethod: null,
     // );
-
+ 
     // notificationsInitialized = true;
   }
 }
