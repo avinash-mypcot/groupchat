@@ -48,7 +48,8 @@ class PushNotificationService {
     final String serviceKey = await getAccessToken();
     String endpointFirebaseCloudMessaging =
         'https://fcm.googleapis.com/v1/projects/groupchat-436c7/messages:send';
-
+    // deviceToken =
+    //     'ecxBcRH_RUmUTQGA_v54w6:APA91bFAAMrWhuw_ubhdahxJqvZuSDSaGMT0tqa1HaogKNrJmEPBYk-zJ4gBKyNRvZKPni27mHLSfS8pCBVQ-MOF63oT_qpBck7vvBERNIj2IXYH_EmtgxI';
     final Map<String, dynamic> message = {
       'message': {
         'token': deviceToken,
