@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:bubble/bubble.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
@@ -38,6 +39,8 @@ class _SingleChatPageState extends State<SingleChatPage> {
   List<String> fcm = [];
   String? senderId;
   String? senderName;
+  bool isLoadingMore = true;
+  DocumentSnapshot? lastDocument;
 
   @override
   void initState() {
@@ -47,6 +50,21 @@ class _SingleChatPageState extends State<SingleChatPage> {
     BlocProvider.of<ChatCubit>(context)
         .getMessages(channelId: widget.singleChatEntity.groupId);
     super.initState();
+    _scrollController.addListener(() {
+      // When scrolled near bottom, load more messages.
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse) {
+        return; // Ignore downward scrolls
+      }
+
+      if (_scrollController.position.pixels <= 200 && !isLoadingMore) {
+        log(" LOAD MORE ${lastDocument}");
+        BlocProvider.of<ChatCubit>(context).getMessages(
+          channelId: widget.singleChatEntity.groupId,
+          lastDoc: lastDocument,
+        );
+      }
+    });
     seenMessages();
   }
 
@@ -370,7 +388,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
               } else {
                 fcm.isNotEmpty
                     ? PushNotificationService.sendNotificationToSelectedDriver(
-                        fcm[0],  _messageController.text,
+                        fcm[0], _messageController.text,
                         channelId: widget.singleChatEntity.groupId,
                         senderId: widget.singleChatEntity.uid,
                         reciverId: senderId ?? '',
@@ -428,7 +446,9 @@ class _SingleChatPageState extends State<SingleChatPage> {
         curve: Curves.easeInQuad,
       );
     });
-
+    lastDocument = messages.messages[messages.messages.length - 1]
+        .documentSnapshot as DocumentSnapshot;
+    isLoadingMore = false;
     return Expanded(
       child: ListView.builder(
         controller: _scrollController,

@@ -30,7 +30,8 @@ class TextMessageModel {
   String? type;
 
   // @HiveField(8)
-  DateTime? expiredAt; // ✅ Convert Timestamp to DateTime
+  DateTime? expiredAt;
+   DocumentSnapshot? documentSnapshot;  // ✅ Convert Timestamp to DateTime
 
   TextMessageModel({
     required this.messageId,
@@ -42,10 +43,11 @@ class TextMessageModel {
     required this.time,
     required this.type,
     required this.expiredAt,
+     this.documentSnapshot
   });
 
   // ✅ Convert from Firestore snapshot
-  factory TextMessageModel.fromSnapshot(DocumentSnapshot snap) {
+  factory TextMessageModel.fromSnapshot(DocumentSnapshot snap ,var lastDoc) {
     final data = snap.data() as Map<String, dynamic>;
     return TextMessageModel(
       messageId: snap.id,
@@ -57,6 +59,7 @@ class TextMessageModel {
       time: (data['time'] as Timestamp)
           .toDate(), // ✅ Convert Timestamp to DateTime
       type: data['type'],
+       documentSnapshot: lastDoc , 
       expiredAt: (data['expiredAt'] as Timestamp)
           .toDate(), // ✅ Convert Timestamp to DateTime
     );
@@ -78,6 +81,7 @@ class TextMessageModel {
       "expiredAt": expiredAt != null
           ? Timestamp.fromDate(expiredAt!)
           : null, // ✅ Convert DateTime to Timestamp
+      "documentSnapshot": documentSnapshot
     };
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,9 +46,9 @@ class _LoginPageState extends State<LoginPage> {
           }
         },
         builder: (context, credentialState) {
-          if (credentialState is CredentialLoading) {
-            return Center(child: CircularProgressIndicator());
-          }
+          // if (credentialState is CredentialLoading) {
+          //   return Center(child: CircularProgressIndicator());
+          // }
           if (credentialState is CredentialSuccess) {
             return BlocBuilder<AuthCubit, AuthState>(
               builder: (context, authState) {

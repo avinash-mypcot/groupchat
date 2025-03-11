@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:group_chat/features/data/models/engage_user_entity.dart';
 import 'package:group_chat/features/data/models/group_entity.dart';
 import 'package:group_chat/features/data/models/my_chat_entity.dart';
@@ -39,8 +40,8 @@ class FirebaseServices {
     return await remoteDataSource.sendTextMessage(textMessageEntity, channelId);
   }
 
-  Stream<List<TextMessageModel>> getMessages(String channelId) {
-    return remoteDataSource.getMessages(channelId);
+  Stream<List<TextMessageModel>> getMessages(String channelId, DocumentSnapshot? lastDoc) {
+    return remoteDataSource.getMessages(channelId,lastDocument:lastDoc );
   }
 
   Future<String> getChannelId(EngageUserEntity engageUserEntity) async {

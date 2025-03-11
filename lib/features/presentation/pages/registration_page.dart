@@ -94,12 +94,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
           }
         },
         builder: (context, credentialState) {
-          if (credentialState is CredentialLoading) {
-            return Scaffold(
-              backgroundColor: darkBackground,
-              body: loadingIndicatorProgressBar(),
-            );
-          }
+          // if (credentialState is CredentialLoading) {
+          //   return Scaffold(
+          //     backgroundColor: darkBackground,
+          //     body: loadingIndicatorProgressBar(),
+          //   );
+          // }
 
           return _bodyWidget();
         },

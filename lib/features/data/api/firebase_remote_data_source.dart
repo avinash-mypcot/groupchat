@@ -183,20 +183,20 @@ class FirebaseRemoteDataSource {
     String? senderId,
   ) async {
     try {
-      final messagesRef = FirebaseFirestore.instance
-          .collection("groupChatChannel")
-          .doc(channelId)
-          .collection("messages");
+      // final messagesRef = FirebaseFirestore.instance
+      //     .collection("groupChatChannel")
+      //     .doc(channelId)
+      //     .collection("messages");
 
-      final querySnapshot = await messagesRef.get();
+      // final querySnapshot = await messagesRef.get();
 
-      for (var doc in querySnapshot.docs) {
-        final data = doc.data();
+      // for (var doc in querySnapshot.docs) {
+      //   final data = doc.data();
 
-        if (data['senderId'] != senderId) {
-          await doc.reference.update({"type": newType});
-        }
-      }
+      //   if (data['senderId'] != senderId) {
+      //     await doc.reference.update({"type": newType});
+      //   }
+      // }
 
       log("Message types updated successfully for messages not sent by $senderId.");
     } catch (e) {
@@ -206,6 +206,8 @@ class FirebaseRemoteDataSource {
 
   Future<void> sendTextMessage(
       TextMessageModel textMessageEntity, String channelId) async {
+    int j = 0;
+    // for (int i = 0; i < 8000; i++) {
     final messagesRef = fireStore
         .collection("groupChatChannel")
         .doc(channelId)
@@ -215,13 +217,13 @@ class FirebaseRemoteDataSource {
 
     final newMessage = TextMessageModel(
       expiredAt: textMessageEntity.expiredAt,
-      content: textMessageEntity.content,
+      content: textMessageEntity.content! + "${j++}",
       messageId: messageId,
       receiverName: textMessageEntity.receiverName,
       recipientId: textMessageEntity.recipientId,
       senderId: textMessageEntity.senderId,
       senderName: textMessageEntity.senderName,
-      time: textMessageEntity.time,
+      time: DateTime.now(),
       type: textMessageEntity.type,
     );
     // final currentState = serviceLocator<NetworkBloc>().state;
@@ -233,6 +235,7 @@ class FirebaseRemoteDataSource {
     } catch (e) {
       log("STORING LOCAL DATA11$e");
     }
+    // }
 
     // } else {
     // Save to Hive for offline storage
@@ -241,33 +244,77 @@ class FirebaseRemoteDataSource {
     // }
   }
 
-  Stream<List<TextMessageModel>> getMessages(String channelId) async* {
-    final oneToOneChatChannelRef = fireStore.collection("groupChatChannel");
-    final messagesRef =
-        oneToOneChatChannelRef.doc(channelId).collection("messages");
-    // final currentState = serviceLocator<NetworkBloc>().state;
-    // Save to Firebase if connected
-    // log('GET MESSAGE1212$currentState');
-    // if (await currentState is NetworkSuccess) {
-    yield* messagesRef.orderBy('time').snapshots().map((querySnap) {
-      final messages = querySnap.docs
-          .map((queryDoc) => TextMessageModel.fromSnapshot(queryDoc))
-          .where((message) => message.expiredAt!.isAfter(DateTime.now()))
+  // Stream<List<TextMessageModel>> getMessages(String channelId) async* {
+  //   final oneToOneChatChannelRef = fireStore.collection("groupChatChannel");
+  //   final messagesRef =
+  //       oneToOneChatChannelRef.doc(channelId).collection("messages");
+  //   // final currentState = serviceLocator<NetworkBloc>().state;
+  //   // Save to Firebase if connected
+  //   // log('GET MESSAGE1212$currentState');
+  //   // if (await currentState is NetworkSuccess) {
+  //   yield* messagesRef.orderBy('time').snapshots().map((querySnap) {
+  //     final messages = querySnap.docs
+  //         .map((queryDoc) => TextMessageModel.fromSnapshot(queryDoc))
+  //         .where((message) => message.expiredAt!.isAfter(DateTime.now()))
+  //         .toList();
+
+  //     // Save to Hive
+  //     // _saveMessagesToHive(channelId, messages);
+
+  //     return messages;
+  //   });
+  //   // } else {
+  //   //   log('GET Offline MESSAGE ');
+  //   //   // If offline, get messages from Hive
+  //   //   var box = await Hive.box<TextMessageModel1>('messages');
+  //   //   log("${box.values.length}");
+  //   //   yield [];
+  //   // }
+  // }
+  Stream<List<TextMessageModel>> getMessages(
+    String channelId, {
+    DocumentSnapshot? lastDocument, // Track the last fetched document
+  }) async* {
+    final messagesRef = fireStore
+        .collection("groupChatChannel")
+        .doc(channelId)
+        .collection("messages")
+        .orderBy('time') // Order newest first
+        .where('expiredAt', isGreaterThan: DateTime.now()) // Active messages
+        .limit(20); // Fetch only 20 messages
+
+    Query query = messagesRef;
+
+    yield* query.snapshots().map((querySnap) {
+      if (querySnap.docs.isNotEmpty) {
+        lastDocument = querySnap.docs.last;
+        log("After assign : ${querySnap.docs.last}");
+      }
+      if (lastDocument != null) {
+        query = query.startAfterDocument(lastDocument!); // Pagination logic
+      }
+      return querySnap.docs
+          .map((queryDoc) =>
+              TextMessageModel.fromSnapshot(queryDoc, lastDocument))
           .toList();
-
-      // Save to Hive
-      // _saveMessagesToHive(channelId, messages);
-
-      return messages;
     });
-    // } else {
-    //   log('GET Offline MESSAGE ');
-    //   // If offline, get messages from Hive
-    //   var box = await Hive.box<TextMessageModel1>('messages');
-    //   log("${box.values.length}");
-    //   yield [];
-    // }
   }
+  // Stream<List<TextMessageModel>> getMessages(String channelId) async* {
+  //   final oneToOneChatChannelRef = fireStore.collection("groupChatChannel");
+  //   final messagesRef =
+  //       oneToOneChatChannelRef.doc(channelId).collection("messages").limit(20);
+
+  //   yield* messagesRef
+  //       .orderBy('time') // Indexed field
+  //       .where('expiredAt',
+  //           isGreaterThan: DateTime.now()) // Filter in Firestore
+  //       .snapshots()
+  //       .map((querySnap) {
+  //     return querySnap.docs
+  //         .map((queryDoc) => TextMessageModel.fromSnapshot(queryDoc))
+  //         .toList();
+  //   });
+  // }
 
   Future<void> addToMyChat(MyChatEntity myChatEntity) async {
     final myChatRef = fireStore
