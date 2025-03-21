@@ -58,11 +58,11 @@ class _SingleChatPageState extends State<SingleChatPage> {
       }
 
       if (_scrollController.position.pixels <= 200 && !isLoadingMore) {
-        log(" LOAD MORE ${lastDocument}");
-        BlocProvider.of<ChatCubit>(context).getMessages(
-          channelId: widget.singleChatEntity.groupId,
-          lastDoc: lastDocument,
-        );
+        log(" LOAD MORE $lastDocument");
+        // BlocProvider.of<ChatCubit>(context).getMessages(
+        //   channelId: widget.singleChatEntity.groupId,
+        //   lastDoc: lastDocument,
+        // );
       }
     });
     seenMessages();
@@ -446,8 +446,6 @@ class _SingleChatPageState extends State<SingleChatPage> {
         curve: Curves.easeInQuad,
       );
     });
-    lastDocument = messages.messages[messages.messages.length - 1]
-        .documentSnapshot as DocumentSnapshot;
     isLoadingMore = false;
     return Expanded(
       child: ListView.builder(

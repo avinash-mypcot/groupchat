@@ -7,7 +7,7 @@ class GetMessageRepository {
 
   GetMessageRepository({required this.repository});
 
-  Stream<List<TextMessageModel>> call(String channelId, DocumentSnapshot? lastDoc) {
-    return repository.getMessages(channelId,lastDoc);
+  Stream<List<TextMessageModel>> call(String channelId) {
+    return repository.getMessages(channelId);
   }
 }

@@ -21,43 +21,50 @@ class SingleItemGroupWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 55,
-                      height: 55,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(50))),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(50)),
-                        child: profileWidget(imageUrl: group.groupProfileImage),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 55,
+                        height: 55,
+                        decoration: BoxDecoration(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(50))),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.all(Radius.circular(50)),
+                          child:
+                              profileWidget(imageUrl: group.groupProfileImage),
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Container(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "${group.groupName}",
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.w500),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            group.lastMessage == null || group.lastMessage == ""
-                                ? "${group.groupName}"
-                                : "${group.lastMessage}",
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                      SizedBox(
+                        width: 10,
                       ),
-                    )
-                  ],
+                      Container(
+                        child: Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                group.groupName,
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.w500),
+                              ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Text(
+                                group.lastMessage == ""
+                                    ? group.groupName
+                                    : group.lastMessage,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               ],
             ),

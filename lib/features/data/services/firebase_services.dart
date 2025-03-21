@@ -40,8 +40,8 @@ class FirebaseServices {
     return await remoteDataSource.sendTextMessage(textMessageEntity, channelId);
   }
 
-  Stream<List<TextMessageModel>> getMessages(String channelId, DocumentSnapshot? lastDoc) {
-    return remoteDataSource.getMessages(channelId,lastDocument:lastDoc );
+  Stream<List<TextMessageModel>> getMessages(String channelId,) {
+    return remoteDataSource.getMessages(channelId );
   }
 
   Future<String> getChannelId(EngageUserEntity engageUserEntity) async {

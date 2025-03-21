@@ -24,14 +24,13 @@ class TextMessageModel {
   String? senderName;
 
   // @HiveField(6)
-  DateTime? time; // ✅ Use DateTime instead of Timestamp
+  DateTime? time; //
 
   // @HiveField(7)
   String? type;
 
   // @HiveField(8)
   DateTime? expiredAt;
-   DocumentSnapshot? documentSnapshot;  // ✅ Convert Timestamp to DateTime
 
   TextMessageModel({
     required this.messageId,
@@ -43,11 +42,10 @@ class TextMessageModel {
     required this.time,
     required this.type,
     required this.expiredAt,
-     this.documentSnapshot
   });
 
-  // ✅ Convert from Firestore snapshot
-  factory TextMessageModel.fromSnapshot(DocumentSnapshot snap ,var lastDoc) {
+  //  Convert from Firestore snapshot
+  factory TextMessageModel.fromSnapshot(DocumentSnapshot snap) {
     final data = snap.data() as Map<String, dynamic>;
     return TextMessageModel(
       messageId: snap.id,
@@ -57,15 +55,14 @@ class TextMessageModel {
       recipientId: data['recipientId'],
       senderName: data['senderName'],
       time: (data['time'] as Timestamp)
-          .toDate(), // ✅ Convert Timestamp to DateTime
+          .toDate(), //  Convert Timestamp to DateTime
       type: data['type'],
-       documentSnapshot: lastDoc , 
       expiredAt: (data['expiredAt'] as Timestamp)
-          .toDate(), // ✅ Convert Timestamp to DateTime
+          .toDate(), //  Convert Timestamp to DateTime
     );
   }
 
-  // ✅ Convert to Firestore document
+  //  Convert to Firestore document
   Map<String, dynamic> toDocument() {
     return {
       "messageId": messageId,
@@ -76,12 +73,11 @@ class TextMessageModel {
       "senderName": senderName,
       "time": time != null
           ? Timestamp.fromDate(time!)
-          : null, // ✅ Convert DateTime to Timestamp
+          : null, //  Convert DateTime to Timestamp
       "type": type,
       "expiredAt": expiredAt != null
           ? Timestamp.fromDate(expiredAt!)
-          : null, // ✅ Convert DateTime to Timestamp
-      "documentSnapshot": documentSnapshot
+          : null, //  Convert DateTime to Timestamp
     };
   }
 }
